@@ -453,7 +453,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0155";
+  var BUILD = "20261104-0205";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -686,9 +686,30 @@
     };
   }
   var btn = el("btnKirim");
-  if (Date.now() > BATAS){
-    btn.disabled = true; btn.textContent = "Kirim Ditutup";
+  var KEY_TERKIRIM = "lkpd-bab6-v1-terkirim";
+  function idn(){
+    var r = window.__pilihan;
+    return r ? (r[0] + "|" + r[1] + "|" + r[2]) : "";
   }
+  function segarTombol(){
+    if (Date.now() > BATAS){
+      btn.disabled = true; btn.textContent = "Kirim Ditutup";
+      return;
+    }
+    var t = null;
+    try { t = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
+    if (t && idn() && t.idn === idn()){
+      btn.disabled = true; btn.textContent = "Sudah Terkirim";
+    } else if (btn.textContent === "Sudah Terkirim"){
+      btn.disabled = false; btn.textContent = "Kirim Jawaban";
+    }
+  }
+  ["fNama", "fKelas", "fAbsen"].forEach(function(id){
+    var n = el(id);
+    if (n) n.addEventListener("input", function(){ setTimeout(segarTombol, 30); });
+  });
+  setTimeout(segarTombol, 150);
+  setTimeout(segarTombol, 700);
   btn.addEventListener("click", function(){
     if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
     if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 19.00 WIB)."); return; }
@@ -701,6 +722,7 @@
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(p)
     }).then(function(){
+      try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idn(), at: Date.now() })); } catch(e){}
       btn.textContent = "Sudah Terkirim";
       toast("Jawaban terkirim. Sebutkan namamu ke guru untuk dicek di tabelnya.");
     }).catch(function(){
