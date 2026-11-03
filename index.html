@@ -324,7 +324,7 @@
     wb.appendChild(mk("div", "unsur", "Tanda waqaf " + (w+1)));
     var wg = mk("div", "grid");
     var ww1 = mk("div"), ww2 = mk("div");
-    field(ww1, "wSimbol" + w, "Simbolnya", "Contoh: \u0645 / \u062C / \u0644\u0627");
+    field(ww1, "wSimbol" + w, "Simbolnya", "Contoh: \u0645 / \u062C / \u0644\u0627, atau mim/ja'/lam alif");
     field(ww2, "wArti" + w, "Petunjuk bacaannya", "Berhenti / lanjut / pilihan");
     wg.appendChild(ww1); wg.appendChild(ww2); wb.appendChild(wg);
     aW.appendChild(wb);
@@ -460,7 +460,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0232";
+  var BUILD = "20261104-0247";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
