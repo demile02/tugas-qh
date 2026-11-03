@@ -264,7 +264,7 @@
     <textarea id="dTindak" data-save></textarea>
   </section>
 
-  <p style="font-size:12.5px; color:var(--muted); text-align:center;">Sesudah selesai, ketuk <b>Kirim Jawaban</b>. Jawabanmu juga tersimpan otomatis di HP ini selama kamu memakai browser yang sama.</p>
+  <p style="font-size:12.5px; color:var(--muted); text-align:left;">Sesudah selesai, ketuk <b>Kirim Jawaban</b>. Jawaban yang belum selesai/dikirim tetap tersimpan otomatis di HP ini selama kamu memakai browser yang sama.</p>
 </div>
 
 <div class="bar">
@@ -460,7 +460,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0247";
+  var BUILD = "20261104-0259";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
