@@ -453,7 +453,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0205";
+  var BUILD = "20261104-0218";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -710,6 +710,36 @@
   });
   setTimeout(segarTombol, 150);
   setTimeout(segarTombol, 700);
+  var idnDicek = "";
+  function cekServer(){
+    var idnNow = idn();
+    if (!idnNow || idnNow === idnDicek) return;
+    idnDicek = idnNow;
+    var r = window.__pilihan;
+    var cb = "cekCb" + Date.now();
+    var sc = document.createElement("script");
+    function bersih(){
+      try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+      if (sc.parentNode) sc.parentNode.removeChild(sc);
+    }
+    window[cb] = function(res){
+      bersih();
+      if (res && res.sudah){
+        try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idnNow, at: Date.now() })); } catch(e){}
+        segarTombol();
+        toast("Nama ini sudah tercatat mengirim jawaban di tabel guru.");
+      }
+    };
+    sc.onerror = function(){ bersih(); idnDicek = ""; };
+    setTimeout(function(){ if (window[cb]) bersih(); }, 9000);
+    sc.src = ENDPOINT + "?cek=1&nama=" + encodeURIComponent(r[0]) + "&kelas=" + encodeURIComponent(r[1]) + "&absen=" + encodeURIComponent(r[2]) + "&callback=" + cb;
+    document.body.appendChild(sc);
+  }
+  ["fNama", "fKelas", "fAbsen"].forEach(function(id){
+    var n = el(id);
+    if (n) n.addEventListener("input", function(){ setTimeout(cekServer, 400); });
+  });
+  setTimeout(cekServer, 1000);
   btn.addEventListener("click", function(){
     if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
     if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 19.00 WIB)."); return; }
