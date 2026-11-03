@@ -100,8 +100,8 @@
     min-height:52px; padding:10px 16px; font-size:15px; font-weight:700; border-radius:8px;
     border:2px solid var(--navy); cursor:pointer; font-family:inherit; white-space:nowrap;
   }
-  #btnCopy{background:var(--navy); color:#fff;}
-  #btnDl{background:#fff; color:var(--navy);}
+  #btnNext{background:var(--navy); color:#fff;}
+  #btnBack{background:#fff; color:var(--navy);}
   #toast{
     position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(20px);
     background:var(--ink); color:#fff; padding:12px 18px; border-radius:8px; font-size:14.5px;
@@ -150,8 +150,8 @@
   .bar{background:rgba(253,252,248,0.92); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-top:1px solid var(--hair);}
   .bar button{border-radius:999px;}
   #btnKirim{background:var(--clav); border-color:var(--clav); color:#fff; font-weight:600;}
-  #btnCopy{background:#fff; border:1px solid var(--bord); color:var(--ink); font-weight:500;}
-  #btnDl{background:transparent; border:1.5px solid var(--bord); color:var(--ink); font-weight:500;}
+  #btnNext{background:var(--clav); border-color:var(--clav); color:#fff; font-weight:600;}
+  #btnBack{background:#fff; border:1px solid var(--bord); color:var(--ink); font-weight:500;}
   #btnKirim:disabled{opacity:.45;}
   .bar .prog b{color:var(--clav);}
   #toast{background:#292524; border-radius:20px;}
@@ -252,14 +252,14 @@
     <textarea id="dTindak" data-save></textarea>
   </section>
 
-  <p style="font-size:12.5px; color:var(--muted); text-align:center;">Sesudah selesai, ketuk <b>Kirim Jawaban</b>. Jawabanmu langsung tercatat di tabel guru. Tombol Salin dan Unduh adalah cadangan kalau jaringan bermasalah. Jawabanmu juga tersimpan otomatis di HP ini selama kamu memakai peramban yang sama.</p>
+  <p style="font-size:12.5px; color:var(--muted); text-align:center;">Sesudah selesai, ketuk <b>Kirim Jawaban</b>. Jawabanmu langsung tercatat di tabel guru. Jawabanmu juga tersimpan otomatis di HP ini selama kamu memakai peramban yang sama.</p>
 </div>
 
 <div class="bar">
   <div class="in">
     <div class="prog" id="progText">Terisi <b>0%</b><br>dari seluruh isian</div>
-    <button type="button" id="btnDl">Unduh</button>
-    <button type="button" id="btnCopy">Salin</button>
+    <button type="button" id="btnBack">Kembali</button>
+    <button type="button" id="btnNext">Selanjutnya</button>
     <button type="button" id="btnKirim">Kirim Jawaban</button>
   </div>
 </div>
@@ -424,85 +424,49 @@
     nodes.forEach(function(n){ if ((n.value || "").trim() !== "") filled++; });
     total += 1; if (picked.length === words.length) filled += 1;
     var pct = total ? Math.round(filled / total * 100) : 0;
-    el("progText").innerHTML = "Terisi <b>" + pct + "%</b><br>dari seluruh isian";
+    el("progText").innerHTML = "Langkah " + (step + 1) + " dari " + STEPS.length + " · " + STEP_NAMES[step] + "<br>Terisi <b>" + pct + "%</b> dari seluruh isian";
   }
 
   /* ---------- Compose answers ---------- */
   function v(id){ var n = el(id); return n ? (n.value || "").trim() : ""; }
-  function compose(){
-    var L = [];
-    L.push("LKPD BAB VI — STRUKTUR AL-QUR'AN");
-    L.push("Al-Qur'an Hadis · Kelas X · MAN Kota Blitar");
-    L.push("");
-    L.push("Nama: " + v("fNama"));
-    L.push("Kelas: " + v("fKelas") + " · No. Absen: " + v("fAbsen"));
-    L.push("");
-    L.push("== BAGIAN A — Berburu Penanda Struktur ==");
-    L.push("Halaman mushaf yang diamati: " + v("aHalaman"));
-    unsur.forEach(function(u, i){
-      L.push((i+1) + ". " + u[0] + " — letak/simbol: " + v("aLetak" + i) + " · fungsi: " + v("aFungsi" + i));
-    });
-    L.push("Tanda waqaf yang ditemukan:");
-    for (var w = 0; w < 5; w++){
-      L.push("- " + v("wSimbol" + w) + ": " + v("wArti" + w));
-    }
-    L.push("");
-    L.push("== BAGIAN B — Hierarki dan Klasifikasi ==");
-    L.push("B1. Urutan hierarki: " + (picked.length ? picked.join(" \u2192 ") : "(belum disusun)"));
-    L.push("Penjelasan hubungan: " + v("bJelas"));
-    L.push("B2.1 Satu juz memuat lebih dari satu surah: " + v("bQ1"));
-    L.push("B2.2 Perbedaan unsur isi dan pembagian baca: " + v("bQ2"));
-    L.push("B3. Klasifikasi:");
-    klasData.forEach(function(k, i){
-      L.push("- " + k[0] + ": " + v("kKlas" + i) + " — ciri: " + v("kCiri" + i));
-    });
-    L.push("");
-    L.push("== BAGIAN C — Profil Tiga Surah ==");
-    for (var c = 0; c < 3; c++){
-      L.push((c+1) + ". " + v("cNama" + c) + " · " + v("cAyat" + c) + " ayat · juz/hizb: " + v("cJuz" + c) +
-             " · ruku': " + v("cRuku" + c) + " · waqaf: " + v("cWaqaf" + c) +
-             " · " + v("cKlas" + c) + " · sumber: " + v("cSumber" + c));
-    }
-    L.push("");
-    L.push("== BAGIAN D — Tiket Keluar ==");
-    L.push("Dua hal yang dipahami: " + v("dPaham"));
-    L.push("Satu unsur yang masih perlu diperiksa: " + v("dPeriksa"));
-    L.push("Satu tindakan bertanggung jawab: " + v("dTindak"));
-    return L.join("\n");
-  }
-
   function toast(msg){
     var t = el("toast"); t.textContent = msg; t.classList.add("show");
     setTimeout(function(){ t.classList.remove("show"); }, 2600);
   }
-  el("btnCopy").addEventListener("click", function(){
-    var text = compose();
-    function done(){ toast("Jawaban tersalin. Tempel dan kirim ke gurumu."); }
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
-    } else { fallback(); }
-    function fallback(){
-      var ta = mk("textarea"); ta.value = text;
-      ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand("copy"); done(); }
-      catch(e){ toast("Gagal menyalin. Pakai tombol Unduh .txt."); }
-      document.body.removeChild(ta);
+  /* ---------- Wizard langkah (Kembali / Selanjutnya) ---------- */
+  var STEPS = ["identitas", "bagianA", "bagianB", "bagianC", "bagianD"];
+  var STEP_NAMES = ["Identitas", "Bagian A", "Bagian B", "Bagian C", "Bagian D"];
+  var step = (typeof state._step === "number" && state._step >= 0 && state._step < STEPS.length) ? state._step : 0;
+  var btnBack = el("btnBack"), btnNext = el("btnNext"), btnKirimEl = el("btnKirim");
+  function renderStep(){
+    STEPS.forEach(function(id, i){
+      var sec = el(id);
+      if (sec) sec.style.display = (i === step) ? "" : "none";
+    });
+    if (btnBack) btnBack.style.display = (step === 0) ? "none" : "";
+    if (btnNext) btnNext.style.display = (step === STEPS.length - 1) ? "none" : "";
+    if (btnKirimEl) btnKirimEl.style.display = (step === STEPS.length - 1) ? "" : "none";
+    updateProgress();
+  }
+  function goStep(n){
+    step = Math.max(0, Math.min(STEPS.length - 1, n));
+    state._step = step; persist();
+    renderStep();
+    window.scrollTo(0, 0);
+  }
+  if (btnBack) btnBack.addEventListener("click", function(){ goStep(step - 1); });
+  if (btnNext) btnNext.addEventListener("click", function(){
+    if (step === 0){
+      if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
+      if (!v("fKode")){ toast("Isi kode kelas dari gurumu dulu."); return; }
     }
-  });
-  el("btnDl").addEventListener("click", function(){
-    var blob = new Blob([compose()], { type: "text/plain;charset=utf-8" });
-    var a = mk("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "LKPD-Bab6-" + (v("fNama") || "siswa").replace(/\s+/g, "_") + ".txt";
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-    toast("Berkas jawaban diunduh.");
+    goStep(step + 1);
   });
 
   bindSaves();
   renderSeq();
   updateProgress();
+  renderStep();
 })();
 </script>
 <script>
@@ -610,7 +574,7 @@
     btn.disabled = true; btn.textContent = "Kirim Ditutup";
   }
   btn.addEventListener("click", function(){
-    if (!ENDPOINT){ toast("Tombol kirim belum aktif. Pakai tombol Salin atau Unduh dulu."); return; }
+    if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
     if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 19.00 WIB)."); return; }
     var p = payload();
     if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
@@ -625,7 +589,7 @@
       toast("Jawaban terkirim. Sebutkan namamu ke guru untuk dicek di tabelnya.");
     }).catch(function(){
       btn.disabled = false; btn.textContent = "Kirim Jawaban";
-      toast("Gagal mengirim, jaringan bermasalah. Coba lagi atau pakai Salin/Unduh.");
+      toast("Gagal mengirim, jaringan bermasalah. Periksa koneksimu lalu coba lagi.");
     });
   });
 })();
