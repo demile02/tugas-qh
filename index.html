@@ -444,6 +444,33 @@
     var t = el("toast"); t.textContent = msg; t.classList.add("show");
     setTimeout(function(){ t.classList.remove("show"); }, 2600);
   }
+  /* ---------- Muat ulang otomatis saat ada versi baru ---------- */
+  /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
+     terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
+     halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
+  var BUILD = "20261104-0145";
+  function cekVersi(){
+    if (document.visibilityState !== "visible") return;
+    fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
+      .then(function(r){ return r.text(); })
+      .then(function(html){
+        var m = html.match(/var BUILD = "([^"]+)"/);
+        if (!m || m[1] === BUILD) return;
+        var btn = el("btnKirim");
+        if (btn && btn.disabled && btn.textContent === "Mengirim\u2026"){
+          setTimeout(cekVersi, 10000);
+          return;
+        }
+        location.reload();
+      })
+      .catch(function(){});
+  }
+  setInterval(cekVersi, 45000);
+  document.addEventListener("visibilitychange", function(){
+    if (document.visibilityState === "visible") cekVersi();
+  });
+  window.addEventListener("online", cekVersi);
+
   /* ---------- Wizard langkah (Kembali / Selanjutnya) ---------- */
   var STEPS = ["identitas", "bagianA", "bagianB", "bagianC", "bagianD"];
   var STEP_NAMES = ["Identitas", "Bagian A", "Bagian B", "Bagian C", "Bagian D"];
