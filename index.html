@@ -400,6 +400,13 @@
   });
   el("bReset").addEventListener("click", function(){ picked = []; saveSeq(); renderSeq(); });
   function saveSeq(){ state._seq = picked.slice(); persist(); }
+  window.__pulihkanSeq = function(arr){
+    if (picked.length) return false;
+    picked = arr.filter(function(w){ return words.indexOf(w) >= 0; });
+    if (!picked.length) return false;
+    saveSeq(); renderSeq();
+    return true;
+  };
   function renderSeq(){
     seqBox.innerHTML = "";
     if (!picked.length){
@@ -453,7 +460,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0218";
+  var BUILD = "20261104-0232";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -710,11 +717,83 @@
   });
   setTimeout(segarTombol, 150);
   setTimeout(segarTombol, 700);
+
+  function isiField(id, val){
+    if (val == null) return 0;
+    val = String(val);
+    if (!val.trim()) return 0;
+    var n = el(id);
+    if (!n || (n.value || "").trim()) return 0;
+    n.value = val;
+    n.dispatchEvent(new Event("input", { bubbles: true }));
+    n.dispatchEvent(new Event("change", { bubbles: true }));
+    return 1;
+  }
+  function pulihkan(j){
+    var n = 0;
+    var peta = { aHalaman: j.halaman, aLetak0: j.a1_letak, aFungsi0: j.a1_fungsi,
+      aLetak1: j.a2_letak, aFungsi1: j.a2_fungsi, aLetak2: j.a3_letak, aFungsi2: j.a3_fungsi,
+      aLetak3: j.a4_letak, aFungsi3: j.a4_fungsi, aLetak4: j.a5_letak, aFungsi4: j.a5_fungsi,
+      bJelas: j.b1_jelas, bQ1: j.b21, bQ2: j.b22,
+      dPaham: j.d1, dPeriksa: j.d2, dTindak: j.d3 };
+    Object.keys(peta).forEach(function(id){ n += isiField(id, peta[id]); });
+    if (j.waqaf){
+      String(j.waqaf).split("; ").forEach(function(pas, i){
+        if (i > 4) return;
+        var k = pas.indexOf(": ");
+        if (k > 0){ n += isiField("wSimbol" + i, pas.slice(0, k)); n += isiField("wArti" + i, pas.slice(k + 2)); }
+      });
+    }
+    if (j.b1_urutan && window.__pulihkanSeq){
+      var arr = String(j.b1_urutan).split(" -> ").map(function(x){ return x.trim(); }).filter(Boolean);
+      if (arr.length && window.__pulihkanSeq(arr)) n += 1;
+    }
+    [j.b3_ikhlas, j.b3_baqarah, j.b3_kahfi].forEach(function(teks, i){
+      if (!teks) return;
+      teks = String(teks);
+      var k = teks.indexOf(": ");
+      var klas = k > 0 ? teks.slice(0, k) : teks;
+      if (klas === "Makkiyah" || klas === "Madaniyah"){
+        n += isiField("kKlas" + i, klas);
+        if (k > 0) n += isiField("kCiri" + i, teks.slice(k + 2));
+      }
+    });
+    [j.c1, j.c2, j.c3].forEach(function(teks, i){
+      if (!teks) return;
+      String(teks).split(" \u00B7 ").forEach(function(seg){
+        if (/ ayat$/.test(seg)) n += isiField("cAyat" + i, seg.replace(/ ayat$/, ""));
+        else if (seg.indexOf("juz/hizb: ") === 0) n += isiField("cJuz" + i, seg.slice(10));
+        else if (seg.indexOf("ruku': ") === 0) n += isiField("cRuku" + i, seg.slice(7));
+        else if (seg.indexOf("waqaf: ") === 0) n += isiField("cWaqaf" + i, seg.slice(7));
+        else if (seg === "Makkiyah" || seg === "Madaniyah") n += isiField("cKlas" + i, seg);
+        else if (seg.indexOf("sumber: ") === 0) n += isiField("cSumber" + i, seg.slice(8));
+      });
+    });
+    if (n > 0) toast("Jawaban terkirimmu dipulihkan dari tabel guru: " + n + " isian.");
+  }
   var idnDicek = "";
   function cekServer(){
     var idnNow = idn();
-    if (!idnNow || idnNow === idnDicek) return;
-    idnDicek = idnNow;
+    if (!idnNow) return;
+    // Server hanya dipanggil bila penyimpanan lokal hilang atau kosong:
+    // lewati bila tanda terkirim lokal untuk nama ini masih ada, atau bila
+    // progres jawaban lokal sudah berarti. Sesudah pemulihan, tanda lokal
+    // tertulis lagi dan panggilan berhenti.
+    var tLokal = null;
+    try { tLokal = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
+    if (tLokal && tLokal.idn === idnNow) return;
+    var stLokal = {};
+    try { stLokal = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}"); } catch(e){}
+    var terisiLokal = 0;
+    Object.keys(stLokal).forEach(function(k){
+      if (k === "fNama" || k === "fKelas" || k === "fAbsen" || k === "fKode" || k === "_step") return;
+      if (k === "_seq"){ if (stLokal[k] && stLokal[k].length) terisiLokal++; return; }
+      if (typeof stLokal[k] === "string" && stLokal[k].trim()) terisiLokal++;
+    });
+    if (terisiLokal >= 3) return;
+    var kunciCek = idnNow + "|" + (v("fKode") || "");
+    if (kunciCek === idnDicek) return;
+    idnDicek = kunciCek;
     var r = window.__pilihan;
     var cb = "cekCb" + Date.now();
     var sc = document.createElement("script");
@@ -727,12 +806,15 @@
       if (res && res.sudah){
         try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idnNow, at: Date.now() })); } catch(e){}
         segarTombol();
-        toast("Nama ini sudah tercatat mengirim jawaban di tabel guru.");
+        if (res.jawaban) pulihkan(res.jawaban);
+        else toast("Nama ini sudah tercatat mengirim jawaban di tabel guru.");
       }
     };
     sc.onerror = function(){ bersih(); idnDicek = ""; };
+    var kodeEl = el("fKode");
+    if (kodeEl) kodeEl.addEventListener("input", function(){ setTimeout(cekServer, 600); });
     setTimeout(function(){ if (window[cb]) bersih(); }, 9000);
-    sc.src = ENDPOINT + "?cek=1&nama=" + encodeURIComponent(r[0]) + "&kelas=" + encodeURIComponent(r[1]) + "&absen=" + encodeURIComponent(r[2]) + "&callback=" + cb;
+    sc.src = ENDPOINT + "?cek=1&nama=" + encodeURIComponent(r[0]) + "&kelas=" + encodeURIComponent(r[1]) + "&absen=" + encodeURIComponent(r[2]) + "&kode=" + encodeURIComponent(v("fKode") || "") + "&callback=" + cb;
     document.body.appendChild(sc);
   }
   ["fNama", "fKelas", "fAbsen"].forEach(function(id){
