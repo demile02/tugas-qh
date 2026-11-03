@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LKPD Bab VI — Struktur Al-Qur'an · Kelas X MAN Kota Blitar</title>
+<title>LKPD Bab VI: Struktur Al-Qur'an · Kelas X MAN Kota Blitar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Reenie+Beanie&display=swap" rel="stylesheet">
@@ -179,7 +179,7 @@
 
   <header class="top">
     <div class="wm">tugas 6 · kelas 10</div>
-    <h1>LKPD Bab VI — Struktur Al-Qur'an</h1>
+    <h1>LKPD Bab VI: Struktur Al-Qur'an</h1>
     <p>Al-Qur'an Hadis · Kelas X Fase E · MAN Kota Blitar</p>
   </header>
 
@@ -195,11 +195,11 @@
     <div class="grid2">
       <div>
         <label for="fKelas">Kelas (otomatis)</label>
-        <input type="text" id="fKelas" data-save readonly placeholder="—">
+        <input type="text" id="fKelas" data-save readonly placeholder="Otomatis terisi">
       </div>
       <div>
         <label for="fAbsen">Nomor absen (otomatis)</label>
-        <input type="text" id="fAbsen" data-save readonly placeholder="—">
+        <input type="text" id="fAbsen" data-save readonly placeholder="Otomatis terisi">
       </div>
     </div>
     <label for="fKode">Kode kelas (disebutkan guru di kelas)</label>
@@ -210,7 +210,7 @@
   </section>
 
   <section class="card" id="bagianA">
-    <h2>Bagian A — Berburu Penanda Struktur <span class="time">±15 menit</span></h2>
+    <h2>Bagian A: Berburu Penanda Struktur <span class="time">±15 menit</span></h2>
     <p class="desc">Buka halaman mushaf yang ditentukan guru, amati baik-baik, lalu isi dari yang benar-benar kamu temukan di halaman itu.</p>
     <label for="aHalaman">Halaman mushaf yang diamati</label>
     <input type="text" id="aHalaman" data-save inputmode="numeric" placeholder="Nomor halaman">
@@ -220,7 +220,7 @@
   </section>
 
   <section class="card" id="bagianB">
-    <h2>Bagian B — Hierarki dan Klasifikasi <span class="time">±20 menit</span></h2>
+    <h2>Bagian B: Hierarki dan Klasifikasi <span class="time">±20 menit</span></h2>
     <p class="desc">B1. Ketuk kotak-kotak ini berurutan untuk menyusun bagan hierarki struktur Al-Qur'an, dari satuan isi yang terbesar sampai pembagian bacanya. Ketuk "Ulangi" kalau mau menyusun ulang.</p>
     <div class="chips" id="bChips"></div>
     <div class="seq" id="bSeq"><span class="empty">Urutanmu akan muncul di sini.</span></div>
@@ -236,13 +236,13 @@
   </section>
 
   <section class="card" id="bagianC">
-    <h2>Bagian C — Profil Tiga Surah <span class="time">±15 menit</span></h2>
+    <h2>Bagian C: Profil Tiga Surah <span class="time">±15 menit</span></h2>
     <p class="desc">Analisislah tiga surah yang ditentukan guru memakai mushaf atau sumber digital tepercaya. Hasil tabel ini yang akan kamu sajikan di galeri kelas.</p>
     <div id="cProf"></div>
   </section>
 
   <section class="card" id="bagianD">
-    <h2>Bagian D — Tiket Keluar <span class="time">±10 menit</span></h2>
+    <h2>Bagian D: Refleksi <span class="time">±10 menit</span></h2>
     <p class="desc">Kerjakan sendiri, jujur dari pemahamanmu hari ini.</p>
     <label for="dPaham">Dua hal yang sudah saya pahami tentang struktur Al-Qur'an</label>
     <textarea id="dPaham" data-save></textarea>
@@ -332,7 +332,7 @@
     var lab = mk("label", null, "Klasifikasi"); lab.setAttribute("for", "kKlas" + i); box.appendChild(lab);
     var sel = mk("select"); sel.id = "kKlas" + i; sel.setAttribute("data-save","");
     ["", "Makkiyah", "Madaniyah"].forEach(function(o){
-      var op = mk("option", null, o === "" ? "— Pilih —" : o); op.value = o; sel.appendChild(op);
+      var op = mk("option", null, o === "" ? "Pilih" : o); op.value = o; sel.appendChild(op);
     });
     box.appendChild(sel);
     field(box, "kCiri" + i, "Dua ciri pendukung", "Tulis 2 ciri dari penjelasan guru yang cocok");
@@ -361,7 +361,7 @@
     var slab = mk("label", null, "Makkiyah / Madaniyah"); slab.setAttribute("for", "cKlas" + c); wsel.appendChild(slab);
     var sel2 = mk("select"); sel2.id = "cKlas" + c; sel2.setAttribute("data-save","");
     ["", "Makkiyah", "Madaniyah"].forEach(function(o){
-      var op = mk("option", null, o === "" ? "— Pilih —" : o); op.value = o; sel2.appendChild(op);
+      var op = mk("option", null, o === "" ? "Pilih" : o); op.value = o; sel2.appendChild(op);
     });
     wsel.appendChild(sel2); g.appendChild(wsel);
     cell("cSumber" + c, "Sumber yang dipakai", true);
@@ -547,7 +547,7 @@
       var s = v("wSimbol" + w), a = v("wArti" + w);
       if (s || a) waqaf.push(s + ": " + a);
     }
-    function klas(i){ return v("kKlas" + i) + (v("kCiri" + i) ? " — " + v("kCiri" + i) : ""); }
+    function klas(i){ return v("kKlas" + i) + (v("kCiri" + i) ? ": " + v("kCiri" + i) : ""); }
     function prof(c){
       return [v("cNama" + c), v("cAyat" + c) + " ayat", "juz/hizb: " + v("cJuz" + c),
               "ruku': " + v("cRuku" + c), "waqaf: " + v("cWaqaf" + c),
