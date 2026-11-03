@@ -214,6 +214,11 @@
     <div class="adab" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 19.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
     <div class="adab">Perlakukan mushaf dengan hormat: tangan bersih, mushaf diletakkan di tempat yang layak, dan periksa dulu sebelum menulis. Cantumkan sumber setiap temuanmu.</div>
     <div class="saved" id="saveNote"></div>
+    <div id="tesBox" hidden style="margin-top:14px; border:1.5px dashed var(--bord); border-radius:14px; padding:12px;">
+      <label for="tesFile">Mode tes: unggah JSON jawaban</label>
+      <input type="file" id="tesFile" accept="application/json,.json">
+      <p class="hint">Identitas tidak ikut dimuat. Pilih nama dan isi kode sendiri, periksa isian, lalu kirim dari Bagian D.</p>
+    </div>
   </section>
 
   <section class="card" id="bagianA">
@@ -448,7 +453,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0145";
+  var BUILD = "20261104-0155";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -501,6 +506,46 @@
     }
     goStep(step + 1);
   });
+
+  /* ---------- Mode tes: muat jawaban dari JSON ---------- */
+  if (new URLSearchParams(location.search).get("tes") === "1"){
+    var tesBoxEl = el("tesBox");
+    if (tesBoxEl) tesBoxEl.hidden = false;
+  }
+  var tesFile = el("tesFile");
+  if (tesFile){
+    tesFile.addEventListener("change", function(){
+      var f = tesFile.files && tesFile.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function(){
+        try {
+          var data = JSON.parse(rd.result);
+          var lewati = { fNama: 1, fKelas: 1, fAbsen: 1, fKode: 1, cNama0: 1, cNama1: 1, cNama2: 1 };
+          var n = 0;
+          Object.keys(data).forEach(function(k){
+            if (k === "_seq" || lewati[k]) return;
+            var node = el(k);
+            if (!node) return;
+            node.value = data[k];
+            node.dispatchEvent(new Event("input", { bubbles: true }));
+            node.dispatchEvent(new Event("change", { bubbles: true }));
+            n++;
+          });
+          if (Array.isArray(data._seq)){
+            picked = data._seq.filter(function(w){ return words.indexOf(w) >= 0; });
+            saveSeq(); renderSeq();
+          }
+          persist(); updateProgress();
+          toast("Jawaban tes dimuat: " + n + " isian. Identitas pilih sendiri.");
+        } catch(e){
+          toast("Berkas JSON tidak bisa dibaca.");
+        }
+        tesFile.value = "";
+      };
+      rd.readAsText(f);
+    });
+  }
 
   bindSaves();
   renderSeq();
