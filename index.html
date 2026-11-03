@@ -109,6 +109,14 @@
   }
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .saved{font-size:12px; color:var(--ok); margin-top:6px; min-height:15px;}
+
+  /* Proteksi konten: teks halaman tidak bisa dipilih/disalin, isi cetak kosong */
+  body{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  input, textarea, select{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+  #pelindung{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center;
+    background:#FDFCF8; color:#6F66A3; font-family:Outfit,sans-serif; font-size:17px; font-weight:600;
+    text-align:left; padding:28px; }
+  @media print{ body *{ display:none !important; } }
 </style>
 <style id="softly">
   :root{
@@ -460,7 +468,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0259";
+  var BUILD = "20261104-0312";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -841,6 +849,36 @@
       btn.disabled = false; btn.textContent = "Kirim Jawaban";
       toast("Gagal mengirim, jaringan bermasalah. Periksa koneksimu lalu coba lagi.");
     });
+  });
+})();
+</script>
+<script>
+(function(){
+  function diIsian(t){ return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable); }
+  document.addEventListener("copy", function(e){ if (!diIsian(e.target)) e.preventDefault(); });
+  document.addEventListener("cut", function(e){ if (!diIsian(e.target)) e.preventDefault(); });
+  document.addEventListener("contextmenu", function(e){ if (!diIsian(e.target)) e.preventDefault(); });
+  document.addEventListener("dragstart", function(e){ e.preventDefault(); });
+  var lapis = document.createElement("div");
+  lapis.id = "pelindung";
+  lapis.textContent = "Halaman disembunyikan. Kembali ke halaman ini untuk melanjutkan mengerjakan.";
+  document.body.appendChild(lapis);
+  function tutup(){ lapis.style.display = "flex"; }
+  function buka(){ lapis.style.display = "none"; }
+  document.addEventListener("visibilitychange", function(){ if (document.hidden) tutup(); else buka(); });
+  window.addEventListener("blur", tutup);
+  window.addEventListener("focus", buka);
+  window.addEventListener("beforeprint", tutup);
+  window.addEventListener("afterprint", buka);
+  document.addEventListener("keydown", function(e){
+    if (e.key === "PrintScreen"){
+      tutup();
+      try { if (navigator.clipboard) navigator.clipboard.writeText(""); } catch(err){}
+      setTimeout(buka, 2500);
+    }
+    if ((e.ctrlKey || e.metaKey) && !diIsian(e.target) && ["c","x","s","p","u"].indexOf((e.key || "").toLowerCase()) >= 0){
+      e.preventDefault();
+    }
   });
 })();
 </script>
