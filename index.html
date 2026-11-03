@@ -116,6 +116,7 @@
   #pelindung{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center;
     background:#FDFCF8; color:#6F66A3; font-family:Outfit,sans-serif; font-size:17px; font-weight:600;
     text-align:left; padding:28px; }
+  .kurang{ outline:2px solid #D64545 !important; background:#FDF1F1 !important; }
   @media print{ body *{ display:none !important; } }
 </style>
 <style id="softly">
@@ -468,7 +469,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0312";
+  var BUILD = "20261104-0330";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -512,6 +513,7 @@
     renderStep();
     window.scrollTo(0, 0);
   }
+  window.__keLangkah = goStep;
   if (btnBack) btnBack.addEventListener("click", function(){ goStep(step - 1); });
   if (btnNext) btnNext.addEventListener("click", function(){
     if (step === 0){
@@ -830,12 +832,49 @@
     if (n) n.addEventListener("input", function(){ setTimeout(cekServer, 400); });
   });
   setTimeout(cekServer, 1000);
+  document.addEventListener("input", function(e){
+    var tSas = e.target;
+    if (tSas && tSas.classList && tSas.classList.contains("kurang") && (tSas.value || "").trim()) tSas.classList.remove("kurang");
+  });
   btn.addEventListener("click", function(){
     if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
     if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 19.00 WIB)."); return; }
     var p = payload();
     if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
     if (!p.kode){ toast("Isi kode kelas dari gurumu dulu."); return; }
+    var DAFTAR_WAJIB = ["aHalaman",
+      "aLetak0","aFungsi0","aLetak1","aFungsi1","aLetak2","aFungsi2","aLetak3","aFungsi3","aLetak4","aFungsi4",
+      "wSimbol0","wArti0","wSimbol1","wArti1","wSimbol2","wArti2","wSimbol3","wArti3","wSimbol4","wArti4",
+      "bJelas","bQ1","bQ2","kKlas0","kCiri0","kKlas1","kCiri1","kKlas2","kCiri2",
+      "cAyat0","cJuz0","cRuku0","cWaqaf0","cKlas0","cSumber0",
+      "cAyat1","cJuz1","cRuku1","cWaqaf1","cKlas1","cSumber1",
+      "cAyat2","cJuz2","cRuku2","cWaqaf2","cKlas2","cSumber2",
+      "dPaham","dPeriksa","dTindak"];
+    var kurang = [];
+    DAFTAR_WAJIB.forEach(function(id){
+      var n = el(id);
+      if (n && !(n.value || "").trim()) kurang.push(n);
+    });
+    var stW = {};
+    try { stW = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}"); } catch(e){}
+    var seqKurang = !(stW._seq && stW._seq.length === 5);
+    document.querySelectorAll(".kurang").forEach(function(n){ n.classList.remove("kurang"); });
+    if (kurang.length || seqKurang){
+      kurang.forEach(function(n){ n.classList.add("kurang"); });
+      var targetK = kurang.length ? kurang[0] : el("bSeq");
+      var URUTAN = ["identitas", "bagianA", "bagianB", "bagianC", "bagianD"];
+      var jalan = targetK, idxT = -1;
+      while (jalan){
+        var pos = URUTAN.indexOf(jalan.id);
+        if (pos >= 0){ idxT = pos; break; }
+        jalan = jalan.parentElement;
+      }
+      if (idxT >= 0 && window.__keLangkah) window.__keLangkah(idxT);
+      if (targetK && targetK.scrollIntoView) setTimeout(function(){ targetK.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60);
+      var jml = kurang.length + (seqKurang ? 1 : 0);
+      toast("Masih ada " + jml + " isian yang kosong. Kirim hanya bisa sesudah semua isian lengkap 100%. Yang kosong kutandai merah.");
+      return;
+    }
     btn.disabled = true; btn.textContent = "Mengirim…";
     fetch(ENDPOINT, {
       method: "POST", mode: "no-cors",
