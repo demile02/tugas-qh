@@ -153,6 +153,12 @@
   #btnNext{background:var(--clav); border-color:var(--clav); color:#fff; font-weight:600;}
   #btnBack{background:#fff; border:1px solid var(--bord); color:var(--ink); font-weight:500;}
   #btnKirim:disabled{opacity:.45;}
+  #identitas{transition:border-color .25s, background .25s;}
+  #identitas.kode-bad{border-color:#D96C57; background:#FDF3F1;}
+  #identitas.kode-ok{border-color:#7FA36B; background:#F2F7EF;}
+  .kodeStatus{font-size:13px; margin-top:6px; min-height:18px; color:var(--muted);}
+  .kodeStatus.bad{color:#B3402E; font-weight:600;}
+  .kodeStatus.ok{color:#4E7A3A; font-weight:600;}
   .bar .prog b{color:var(--clav);}
   #toast{background:#292524; border-radius:20px;}
   .saved{color:var(--clav);}
@@ -204,6 +210,7 @@
     </div>
     <label for="fKode">Kode kelas (disebutkan guru di kelas)</label>
     <input type="text" id="fKode" data-save inputmode="numeric" maxlength="6" placeholder="6 digit, dari gurumu">
+    <p class="kodeStatus" id="kodeStatus" role="alert"></p>
     <div class="adab" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 19.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
     <div class="adab">Perlakukan mushaf dengan hormat: tangan bersih, mushaf diletakkan di tempat yang layak, dan periksa dulu sebelum menulis. Cantumkan sumber setiap temuanmu.</div>
     <div class="saved" id="saveNote"></div>
@@ -463,6 +470,7 @@
     if (step === 0){
       if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
       if (!v("fKode")){ toast("Isi kode kelas dari gurumu dulu."); return; }
+      if (window.__cekKode && window.__cekKode() === false){ toast("Kode kelas belum benar. Baca peringatan merah di kartu identitas."); return; }
     }
     goStep(step + 1);
   });
@@ -496,12 +504,14 @@
     inp.value = r[0]; kEl.value = r[1]; aEl.value = String(r[2]);
     window.__pilihan = r;
     fire(inp); fire(kEl); fire(aEl);
+    cekKode();
     box.hidden = true; box.innerHTML = "";
   }
   function gambar(){
     var q = norm(inp.value);
     if (window.__pilihan && inp.value.trim() !== window.__pilihan[0]){
       window.__pilihan = null; kEl.value = ""; aEl.value = ""; fire(kEl); fire(aEl);
+      cekKode();
     }
     if (q.length < 1){ box.hidden = true; box.innerHTML = ""; return; }
     var hasil = ROSTER.filter(function(r){ return norm(r[0]).indexOf(q) >= 0; }).slice(0, 8);
@@ -524,12 +534,42 @@
     }
     box.hidden = false;
   }
+  var KODE = { "X-E": "573987", "X-F": "724804" };
+  var kodeInp = document.getElementById("fKode");
+  var kodeStatus = document.getElementById("kodeStatus");
+  var idCard = document.getElementById("identitas");
+  function cekKode(){
+    var val = (kodeInp.value || "").trim();
+    idCard.classList.remove("kode-ok", "kode-bad");
+    kodeStatus.className = "kodeStatus";
+    if (!val){ kodeStatus.textContent = ""; return null; }
+    if (val.length < 6){
+      idCard.classList.add("kode-bad"); kodeStatus.classList.add("bad");
+      kodeStatus.textContent = "Kode belum lengkap: harus 6 digit, sekarang " + val.length + " digit.";
+      return false;
+    }
+    var expected = window.__pilihan ? KODE[window.__pilihan[1]] : null;
+    if (expected && val !== expected){
+      idCard.classList.add("kode-bad"); kodeStatus.classList.add("bad");
+      kodeStatus.textContent = "Kode salah untuk kelasmu. Minta kode yang benar ke gurumu.";
+      return false;
+    }
+    if (expected && val === expected){
+      idCard.classList.add("kode-ok"); kodeStatus.classList.add("ok");
+      kodeStatus.textContent = "Kode benar.";
+      return true;
+    }
+    kodeStatus.textContent = "Kode 6 digit terisi. Pilih namamu dulu supaya kode dicocokkan dengan kelasmu.";
+    return null;
+  }
+  kodeInp.addEventListener("input", cekKode);
+  window.__cekKode = cekKode;
   inp.addEventListener("input", gambar);
   inp.addEventListener("focus", gambar);
   document.addEventListener("click", function(e){
     if (!box.contains(e.target) && e.target !== inp) box.hidden = true;
   });
-  setTimeout(function(){ window.__pilihan = cocok(); }, 60);
+  setTimeout(function(){ window.__pilihan = cocok(); cekKode(); }, 80);
 })();
 </script>
 <script>
