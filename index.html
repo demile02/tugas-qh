@@ -180,8 +180,7 @@
   <header class="top">
     <div class="wm">tugas 6 · kelas 10</div>
     <h1>LKPD Bab VI — Struktur Al-Qur'an</h1>
-    <p>Al-Qur'an Hadis · Kelas X Fase E · MAN Kota Blitar<br>
-    Bab VI: Al-Qur'an Kebenaran Berlaku Sepanjang Zaman</p>
+    <p>Al-Qur'an Hadis · Kelas X Fase E · MAN Kota Blitar</p>
   </header>
 
   <section class="card" id="identitas">
@@ -205,7 +204,7 @@
     </div>
     <label for="fKode">Kode kelas (disebutkan guru di kelas)</label>
     <input type="text" id="fKode" data-save inputmode="numeric" maxlength="6" placeholder="6 digit, dari gurumu">
-    <div class="adab"><b>Batas kirim: Kamis, 5 November 2026, pukul 19.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
+    <div class="adab" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 19.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
     <div class="adab">Perlakukan mushaf dengan hormat: tangan bersih, mushaf diletakkan di tempat yang layak, dan periksa dulu sebelum menulis. Cantumkan sumber setiap temuanmu.</div>
     <div class="saved" id="saveNote"></div>
   </section>
@@ -536,7 +535,7 @@
     if (window.__pilihan && inp.value.trim() !== window.__pilihan[0]){
       window.__pilihan = null; kEl.value = ""; aEl.value = ""; fire(kEl); fire(aEl);
     }
-    if (q.length < 2){ box.hidden = true; box.innerHTML = ""; return; }
+    if (q.length < 1){ box.hidden = true; box.innerHTML = ""; return; }
     var hasil = ROSTER.filter(function(r){ return norm(r[0]).indexOf(q) >= 0; }).slice(0, 8);
     box.innerHTML = "";
     if (!hasil.length){
