@@ -237,7 +237,7 @@
 
   <section class="card" id="bagianC">
     <h2>Bagian C: Profil Tiga Surah <span class="time">±15 menit</span></h2>
-    <p class="desc">Analisislah tiga surah yang ditentukan guru memakai mushaf atau sumber digital tepercaya. Hasil tabel ini yang akan kamu sajikan di galeri kelas.</p>
+    <p class="desc">Analisislah tiga surah yang telah ditentukan memakai mushaf atau sumber digital yang terpercaya.</p>
     <div id="cProf"></div>
   </section>
 
@@ -340,10 +340,11 @@
   });
 
   /* ---------- Bagian C profiles ---------- */
+  var C_SURAH = [["Al-Ikhlas", 112], ["Al-Baqarah", 2], ["Al-Kahfi", 18]];
   var cp = el("cProf");
   for (var c = 0; c < 3; c++){
     var pb = mk("div", "prof");
-    pb.appendChild(mk("div", "ptitle", "Surah ke-" + (c+1) + " yang ditentukan guru"));
+    pb.appendChild(mk("div", "ptitle", "Surah " + C_SURAH[c][0] + " (" + C_SURAH[c][1] + ")"));
     var g = mk("div", "grid");
     function cell(id, label, full){
       var wdiv = mk("div", full ? "full" : null);
@@ -352,7 +353,10 @@
       wdiv.appendChild(inp); g.appendChild(wdiv);
       return inp;
     }
-    cell("cNama" + c, "Nama & nomor surah", true);
+    var namaInp = cell("cNama" + c, "Nama & nomor surah", true);
+    namaInp.value = C_SURAH[c][0] + " (" + C_SURAH[c][1] + ")";
+    namaInp.readOnly = true;
+    namaInp.removeAttribute("data-save");
     cell("cAyat" + c, "Jumlah ayat");
     cell("cJuz" + c, "Letak juz / hizb");
     cell("cRuku" + c, "Penanda ruku' ditemukan?");
