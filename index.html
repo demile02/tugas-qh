@@ -220,7 +220,7 @@
     <label for="fKode">Kode kelas (disebutkan guru di kelas)</label>
     <input type="text" id="fKode" data-save inputmode="numeric" maxlength="6" placeholder="6 digit, dari gurumu">
     <p class="kodeStatus" id="kodeStatus" role="alert"></p>
-    <div class="adab" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 19.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
+    <div class="adab" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 12.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
     <div class="adab">Perlakukan mushaf dengan hormat: tangan bersih, mushaf diletakkan di tempat yang layak, dan periksa dulu sebelum menulis. Cantumkan sumber setiap temuanmu.</div>
     <div class="saved" id="saveNote"></div>
     <div id="tesBox" hidden style="margin-top:14px; border:1.5px dashed var(--bord); border-radius:14px; padding:12px;">
@@ -469,7 +469,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0330";
+  var BUILD = "20261104-0813";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -665,7 +665,7 @@
 (function(){
   "use strict";
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxTtRdLjO6vLsz47qV6ny3PILs9jSU986YJ99jBQIt4aev-LkTTKsazzSF8uAQhP0VE2Q/exec";
-  var BATAS = new Date("2026-11-05T19:00:00+07:00").getTime();
+  var BATAS = new Date("2026-11-05T12:00:00+07:00").getTime();
   function el(id){ return document.getElementById(id); }
   function v(id){ var n = el(id); return n ? (n.value || "").trim() : ""; }
   function toast(msg){
@@ -838,7 +838,7 @@
   });
   btn.addEventListener("click", function(){
     if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
-    if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 19.00 WIB)."); return; }
+    if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 12.00 WIB)."); return; }
     var p = payload();
     if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
     if (!p.kode){ toast("Isi kode kelas dari gurumu dulu."); return; }
