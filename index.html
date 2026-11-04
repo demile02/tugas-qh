@@ -469,7 +469,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0900";
+  var BUILD = "20261104-1005";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -626,8 +626,8 @@
     box.hidden = false;
   }
   var KODE = { "X-E": "573987", "X-F": "724804" };
-  var BATAS_KELAS_MS = { "X-F": new Date("2026-11-05T12:00:00+07:00").getTime() };
-  var BATAS_KELAS_TEKS = { "X-F": "Kamis, 5 November 2026, pukul 12.00 WIB" };
+  var BATAS_KELAS_MS = { "X-E": new Date("2026-11-05T19:00:00+07:00").getTime(), "X-F": new Date("2026-11-05T12:00:00+07:00").getTime() };
+  var BATAS_KELAS_TEKS = { "X-E": "Kamis, 5 November 2026, pukul 19.00 WIB", "X-F": "Kamis, 5 November 2026, pukul 12.00 WIB" };
   window.__batasAktif = function(){
     var r = window.__pilihan;
     return (r && BATAS_KELAS_MS[r[1]]) ? BATAS_KELAS_MS[r[1]] : null;
@@ -689,7 +689,7 @@
 (function(){
   "use strict";
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxTtRdLjO6vLsz47qV6ny3PILs9jSU986YJ99jBQIt4aev-LkTTKsazzSF8uAQhP0VE2Q/exec";
-  var BATAS = new Date("2026-11-05T12:00:00+07:00").getTime();
+  var BATAS = new Date("2026-11-05T19:00:00+07:00").getTime();
   function el(id){ return document.getElementById(id); }
   function v(id){ var n = el(id); return n ? (n.value || "").trim() : ""; }
   function toast(msg){
@@ -863,7 +863,7 @@
   btn.addEventListener("click", function(){
     if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
     var bAktif = (window.__batasAktif && window.__batasAktif()) || BATAS;
-    if (Date.now() > bAktif){ toast("Sudah lewat batas kirim kelasmu (" + ((window.__batasTeks && window.__batasTeks()) || "5 Nov 2026, 12.00 WIB") + ")."); return; }
+    if (Date.now() > bAktif){ toast("Sudah lewat batas kirim kelasmu (" + ((window.__batasTeks && window.__batasTeks()) || "5 Nov 2026, 19.00 WIB") + ")."); return; }
     var p = payload();
     if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
     if (!p.kode){ toast("Isi kode kelas dari gurumu dulu."); return; }
