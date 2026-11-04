@@ -220,7 +220,7 @@
     <label for="fKode">Kode kelas (disebutkan guru di kelas)</label>
     <input type="text" id="fKode" data-save inputmode="numeric" maxlength="6" placeholder="6 digit, dari gurumu">
     <p class="kodeStatus" id="kodeStatus" role="alert"></p>
-    <div class="adab" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 12.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
+    <div class="adab" id="peringatanBatas" hidden style="display:none"><b>Batas kirim: Kamis, 5 November 2026, pukul 12.00 WIB.</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.</div>
     <div class="adab">Perlakukan mushaf dengan hormat: tangan bersih, mushaf diletakkan di tempat yang layak, dan periksa dulu sebelum menulis. Cantumkan sumber setiap temuanmu.</div>
     <div class="saved" id="saveNote"></div>
     <div id="tesBox" hidden style="margin-top:14px; border:1.5px dashed var(--bord); border-radius:14px; padding:12px;">
@@ -469,7 +469,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261104-0813";
+  var BUILD = "20261104-0900";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -594,6 +594,7 @@
     window.__pilihan = r;
     fire(inp); fire(kEl); fire(aEl);
     cekKode();
+    sesuaikanBatas();
     box.hidden = true; box.innerHTML = "";
   }
   function gambar(){
@@ -601,6 +602,7 @@
     if (window.__pilihan && inp.value.trim() !== window.__pilihan[0]){
       window.__pilihan = null; kEl.value = ""; aEl.value = ""; fire(kEl); fire(aEl);
       cekKode();
+      sesuaikanBatas();
     }
     if (q.length < 1){ box.hidden = true; box.innerHTML = ""; return; }
     var hasil = ROSTER.filter(function(r){ return norm(r[0]).indexOf(q) >= 0; }).slice(0, 8);
@@ -624,6 +626,28 @@
     box.hidden = false;
   }
   var KODE = { "X-E": "573987", "X-F": "724804" };
+  var BATAS_KELAS_MS = { "X-F": new Date("2026-11-05T12:00:00+07:00").getTime() };
+  var BATAS_KELAS_TEKS = { "X-F": "Kamis, 5 November 2026, pukul 12.00 WIB" };
+  window.__batasAktif = function(){
+    var r = window.__pilihan;
+    return (r && BATAS_KELAS_MS[r[1]]) ? BATAS_KELAS_MS[r[1]] : null;
+  };
+  window.__batasTeks = function(){
+    var r = window.__pilihan;
+    return (r && BATAS_KELAS_TEKS[r[1]]) ? BATAS_KELAS_TEKS[r[1]] : null;
+  };
+  function sesuaikanBatas(){
+    var d = document.getElementById("peringatanBatas");
+    if (!d) return;
+    var r = window.__pilihan;
+    if (r && BATAS_KELAS_TEKS[r[1]]){
+      d.innerHTML = "<b>Batas kirim kelas " + r[1] + ": " + BATAS_KELAS_TEKS[r[1]] + ".</b> Sesudah jam itu tombol Kirim terkunci dan jawaban tidak lagi diterima sistem.";
+      d.hidden = false; d.style.display = "";
+    } else {
+      d.hidden = true; d.style.display = "none";
+    }
+  }
+  window.__sesuaikanBatas = sesuaikanBatas;
   var kodeInp = document.getElementById("fKode");
   var kodeStatus = document.getElementById("kodeStatus");
   var idCard = document.getElementById("identitas");
@@ -658,7 +682,7 @@
   document.addEventListener("click", function(e){
     if (!box.contains(e.target) && e.target !== inp) box.hidden = true;
   });
-  setTimeout(function(){ window.__pilihan = cocok(); cekKode(); }, 80);
+  setTimeout(function(){ window.__pilihan = cocok(); cekKode(); sesuaikanBatas(); }, 80);
 })();
 </script>
 <script>
@@ -709,7 +733,7 @@
     return r ? (r[0] + "|" + r[1] + "|" + r[2]) : "";
   }
   function segarTombol(){
-    if (Date.now() > BATAS){
+    if (Date.now() > ((window.__batasAktif && window.__batasAktif()) || BATAS)){
       btn.disabled = true; btn.textContent = "Kirim Ditutup";
       return;
     }
@@ -838,7 +862,8 @@
   });
   btn.addEventListener("click", function(){
     if (!ENDPOINT){ toast("Tombol kirim belum aktif."); return; }
-    if (Date.now() > BATAS){ toast("Sudah lewat batas kirim (5 Nov 2026, 12.00 WIB)."); return; }
+    var bAktif = (window.__batasAktif && window.__batasAktif()) || BATAS;
+    if (Date.now() > bAktif){ toast("Sudah lewat batas kirim kelasmu (" + ((window.__batasTeks && window.__batasTeks()) || "5 Nov 2026, 12.00 WIB") + ")."); return; }
     var p = payload();
     if (!window.__pilihan){ toast("Pilih namamu dari daftar dulu: ketik namamu, lalu ketuk namamu yang muncul."); return; }
     if (!p.kode){ toast("Isi kode kelas dari gurumu dulu."); return; }
