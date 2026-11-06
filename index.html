@@ -84,7 +84,8 @@
   button.act.primary{background:var(--navy); color:#fff;}
   .prof{border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:10px; background:#fbfcfd;}
   .prof .ptitle{font-weight:700; color:var(--navy); margin-bottom:6px; font-size:14.5px;}
-  .prof .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .prof .grid{display:grid; grid-template-columns:1fr; gap:8px;}
+  @media (min-width:560px){ .prof .grid{grid-template-columns:1fr 1fr;} }
   .prof .grid .full{grid-column:1 / -1;}
   .prof label{margin-top:6px; font-size:12.5px;}
   .prof input, .prof select{min-height:46px;}
@@ -203,7 +204,7 @@
     <p class="desc">Isi dulu sebelum mulai. Kerjakan sendiri-sendiri, berurutan dari Bagian A sampai D.</p>
     <label for="fNama">Nama lengkap</label>
     <div class="picker">
-      <input type="text" id="fNama" data-save placeholder="Ketik namamu, lalu ketuk namamu di daftar yang muncul" autocomplete="off">
+      <input type="text" id="fNama" data-save placeholder="Ketik namamu, lalu ketuk di daftar" autocomplete="off">
       <div class="results" id="namaResults" hidden></div>
     </div>
     <p class="hint">Ketik beberapa huruf namamu, lalu ketuk namamu yang muncul di daftar. Kelas dan nomor absenmu terisi otomatis.</p>
@@ -313,24 +314,24 @@
   var unsur = [
     ["Nama dan nomor surah",
      "Setiap surah dibuka kotak judul berisi nama surah dan nomor urutnya. Kalau halamanmu memuat awal satu surah, kotak itu ada tepat sebelum ayat pertamanya.",
-     "Misalnya: di bagian atas halaman, sebelum ayat pertama",
-     "Misalnya: menunjukkan nama dan urutan surah yang sedang dibaca"],
+     "Misalnya: di bagian atas halaman",
+     "Misalnya: menunjukkan nama surah"],
     ["Nomor ayat",
      "Nomor ayat tertulis di akhir setiap ayat, di dalam lingkaran kecil berhias. Tulis dua nomor yang kamu temukan di halamanmu.",
      "Misalnya: ayat 5 dan ayat 6",
-     "Misalnya: menunjukkan urutan ayat di dalam surah"],
+     "Misalnya: menunjukkan urutan ayat"],
     ["Penanda juz",
      "Di tepi luar halaman ada tulisan nama juz, misalnya الجزء الأول. Awal juz juga ditandai kotak berhias di dalam teks.",
-     "Misalnya: tulisan nama juz di tepi kanan atas halaman",
-     "Misalnya: menandai bagian bacaan, Al-Qur'an terbagi 30 juz"],
+     "Misalnya: nama juz di tepi kanan atas",
+     "Misalnya: tanda pembagian 30 juz"],
     ["Penanda hizb",
      "Tanda hizb berbentuk hiasan kecil di tepi halaman, di samping ayat tempat satu hizb dimulai. Satu juz terbagi dua hizb.",
-     "Misalnya: hiasan kecil di tepi kiri halaman, di samping ayat 12",
-     "Misalnya: membagi satu juz menjadi dua bagian bacaan"],
+     "Misalnya: hiasan di tepi kiri halaman",
+     "Misalnya: membagi satu juz jadi dua"],
     ["Tanda ruku' (huruf 'ain)",
      "Huruf ع kecil tertulis di tepi halaman, di samping ayat terakhir satu kelompok bahasan.",
-     "Misalnya: huruf 'ain di tepi kanan halaman, di samping ayat 20",
-     "Misalnya: menandai berakhirnya satu kelompok ayat satu bahasan"]
+     "Misalnya: 'ain di tepi kanan halaman",
+     "Misalnya: akhir satu kelompok ayat"]
   ];
   var aRows = el("aRows");
   unsur.forEach(function(u, i){
@@ -350,7 +351,7 @@
     wb.appendChild(mk("div", "unsur", "Tanda waqaf " + (w+1)));
     var wg = mk("div", "grid");
     var ww1 = mk("div"), ww2 = mk("div");
-    field(ww1, "wSimbol" + w, "Simbol tanda waqafnya", "Contoh: \u0645 / \u062C / \u0644\u0627, atau mim/ja'/lam alif");
+    field(ww1, "wSimbol" + w, "Simbol tanda waqafnya", "Contoh: \u0645, \u062C, \u0644\u0627 (mim, ja', lam alif)");
     field(ww2, "wArti" + w, "Arti tanda waqafnya", "Misalnya: waqaf lazim, harus berhenti");
     wg.appendChild(ww1); wg.appendChild(ww2); wb.appendChild(wg);
     aW.appendChild(wb);
@@ -373,7 +374,7 @@
       var op = mk("option", null, o === "" ? "Pilih" : o); op.value = o; sel.appendChild(op);
     });
     box.appendChild(sel);
-    field(box, "kCiri" + i, "Dua ciri pendukung", "Tulis 2 ciri dari penjelasan guru, pisahkan dengan koma");
+    field(box, "kCiri" + i, "Dua ciri pendukung", "Tulis 2 ciri, pisahkan dengan koma");
     bk.appendChild(box);
   });
 
@@ -381,7 +382,7 @@
   var inpPh = {
     cAyat: "Tulis angkanya, misalnya 7",
     cJuz: "Misalnya: juz 1, hizb 1 (Al-Fatihah)",
-    cRuku: "Misalnya: ada, di akhir ayat 7 (Al-Fatihah)",
+    cRuku: "Ada atau tidak ada, di ayat berapa",
     cWaqaf: "Misalnya: \u0645 (waqaf lazim)",
     cSumber: "Misalnya: aplikasi Al-Qur'an Kemenag"
   };
@@ -494,7 +495,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261106-2002";
+  var BUILD = "20261106-2014";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
