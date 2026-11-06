@@ -201,7 +201,7 @@
 
   <section class="card" id="identitas">
     <h2>Identitas</h2>
-    <p class="desc">Isi dulu sebelum mulai. Kerjakan sendiri-sendiri, berurutan dari Bagian A sampai D.</p>
+    <p class="desc">Isi dulu sebelum mulai. Kerjakan sendiri, tidak berkelompok. Urut dari Bagian A sampai D.</p>
     <label for="fNama">Nama lengkap</label>
     <div class="picker">
       <input type="text" id="fNama" data-save placeholder="Ketik namamu, lalu ketuk di daftar" autocomplete="off">
@@ -210,11 +210,11 @@
     <p class="hint">Ketik beberapa huruf namamu, lalu ketuk namamu yang muncul di daftar. Kelas dan nomor absenmu terisi otomatis.</p>
     <div class="grid2">
       <div>
-        <label for="fKelas">Kelas (otomatis)</label>
+        <label for="fKelas">Kelasmu (terisi otomatis)</label>
         <input type="text" id="fKelas" data-save readonly placeholder="Otomatis terisi">
       </div>
       <div>
-        <label for="fAbsen">Nomor absen (otomatis)</label>
+        <label for="fAbsen">Nomor absenmu (terisi otomatis)</label>
         <input type="text" id="fAbsen" data-save readonly placeholder="Otomatis terisi">
       </div>
     </div>
@@ -227,14 +227,14 @@
     <div id="tesBox" hidden style="margin-top:14px; border:1.5px dashed var(--bord); border-radius:14px; padding:12px;">
       <label for="tesFile">Mode tes: unggah JSON jawaban</label>
       <input type="file" id="tesFile" accept="application/json,.json">
-      <p class="hint">Identitas tidak ikut dimuat. Pilih nama dan isi kode sendiri, periksa isian, lalu kirim dari langkah terakhir (Bagian D).</p>
+      <p class="hint">Pilih nama dan isi kode kelas sendiri, periksa isian, lalu kirim dari langkah terakhir (Bagian D).</p>
     </div>
   </section>
 
   <section class="card" id="bagianA">
     <h2>Bagian A: Berburu Penanda Struktur <span class="time">±15 menit</span></h2>
-    <p class="desc">Buka halaman mushaf yang ditentukan guru dan amati baik-baik. Setiap nomor diisi dua kali: kolom pertama, di mana letak tandanya atau seperti apa bentuknya; kolom kedua, untuk apa tanda itu. Isi dari yang benar-benar kamu temukan di halaman itu. Kalau satu tanda tidak ada di halamanmu, tulis "tidak ada di halaman ini".</p>
-    <label for="aHalaman">Halaman mushaf yang diamati</label>
+    <p class="desc">Buka halaman mushaf yang ditentukan guru dan amati baik-baik. Setiap nomor diisi dua kali: isian pertama tentang letak tandanya di halaman itu, isian kedua tentang gunanya. Isi dari yang benar-benar kamu temukan di halaman itu. Kalau satu tanda tidak ada di halamanmu, tulis "tidak ada di halaman ini".</p>
+    <label for="aHalaman">Nomor halaman mushaf yang kamu amati</label>
     <input type="text" id="aHalaman" data-save inputmode="numeric" placeholder="Nomor halamannya, misalnya 212">
     <div id="aRows"></div>
     <label style="margin-top:14px;">Tanda waqaf yang kamu temukan (minimal 5)</label>
@@ -243,18 +243,18 @@
   </section>
 
   <section class="card" id="bagianB">
-    <h2>Bagian B: Hierarki dan Klasifikasi <span class="time">±20 menit</span></h2>
-    <p class="desc">B1. Ketuk kotak-kotak ini berurutan untuk menyusun bagan hierarki struktur Al-Qur'an, dari satuan isi yang terbesar sampai pembagian bacanya. Ketuk "Ulangi Susunan" kalau mau menyusun ulang.</p>
+    <h2>Bagian B: Bagan Struktur dan Penggolongan Surah <span class="time">±20 menit</span></h2>
+    <p class="desc">B1. Susun urutan kelima kata ini dengan mengetuknya satu per satu: mulai dari isi Al-Qur'an yang paling besar, sampai ke pembagian bacaan yang paling kecil. Ketuk "Ulangi Susunan" kalau mau menyusun ulang.</p>
     <div class="chips" id="bChips"></div>
     <div class="seq" id="bSeq"><span class="empty">Urutanmu akan muncul di sini.</span></div>
     <div class="btnrow"><button type="button" class="act" id="bReset">Ulangi Susunan</button></div>
-    <label for="bJelas">Jelaskan hubungan antarunsur pada baganmu</label>
+    <label for="bJelas">Jelaskan hubungan kelima kata itu pada baganmu</label>
     <textarea id="bJelas" data-save placeholder="Contoh: Surah tersusun atas ayat. Juz, hizb, dan ruku' adalah pembagian untuk memudahkan membaca, sehingga bisa melintasi batas surah…"></textarea>
     <label for="bQ1">B2. Mengapa satu juz dapat memuat bagian dari lebih dari satu surah? Berikan satu contoh dari mushaf.</label>
     <textarea id="bQ1" data-save placeholder="Petunjuk: pikirkan untuk apa juz dibuat, lalu sebutkan satu contoh dari mushaf yang kamu amati."></textarea>
-    <label for="bQ2">B2. Apa perbedaan mendasar antara unsur isi (surah, ayat) dan pembagian baca (juz, hizb, ruku')?</label>
+    <label for="bQ2">B2. Apa perbedaan mendasar antara surah dan ayat di satu sisi, dengan juz, hizb, dan ruku' di sisi lain?</label>
     <textarea id="bQ2" data-save placeholder="Petunjuk: bedakan mana isi Al-Qur'an itu sendiri dan mana pembagian supaya bacaan teratur."></textarea>
-    <label style="margin-top:14px;">B3. Klasifikasikan tiga surah berikut dari ciri-cirinya</label>
+    <label style="margin-top:14px;">B3. Tentukan golongan tiga surah berikut dari ciri-cirinya</label>
     <div id="bKlas"></div>
   </section>
 
@@ -269,7 +269,7 @@
     <p class="desc">Kerjakan sendiri, jujur dari pemahamanmu hari ini.</p>
     <label for="dPaham">Dua hal yang sudah saya pahami tentang struktur Al-Qur'an</label>
     <textarea id="dPaham" data-save placeholder="Tulis dua hal, pisahkan dengan koma. Misalnya: juz itu pembagian bacaan, waqaf itu tanda berhenti"></textarea>
-    <label for="dPeriksa">Satu unsur yang masih perlu saya periksa kembali</label>
+    <label for="dPeriksa">Satu hal yang masih perlu saya periksa kembali</label>
     <textarea id="dPeriksa" data-save placeholder="Misalnya: saya belum bisa membedakan hizb dan ruku'"></textarea>
     <label for="dTindak">Satu tindakan bertanggung jawab saya ketika memakai mushaf atau aplikasi Al-Qur'an</label>
     <textarea id="dTindak" data-save placeholder="Misalnya: saya akan berhenti di tanda waqaf lazim saat membaca"></textarea>
@@ -315,23 +315,23 @@
     ["Nama dan nomor surah",
      "Setiap surah dibuka kotak judul berisi nama surah dan nomor urutnya. Kalau halamanmu memuat awal satu surah, kotak itu ada tepat sebelum ayat pertamanya.",
      "Misalnya: di bagian atas halaman",
-     "Misalnya: menunjukkan nama surah"],
+     "Misalnya: menunjukkan nama surah", "Di mana kotak judul surah itu?"],
     ["Nomor ayat",
      "Nomor ayat tertulis di akhir setiap ayat, di dalam lingkaran kecil berhias. Tulis dua nomor yang kamu temukan di halamanmu.",
      "Misalnya: ayat 5 dan ayat 6",
-     "Misalnya: menunjukkan urutan ayat"],
+     "Misalnya: menunjukkan urutan ayat", "Dua nomor ayat yang kamu temukan"],
     ["Penanda juz",
      "Di tepi luar halaman ada tulisan nama juz, misalnya الجزء الأول. Awal juz juga ditandai kotak berhias di dalam teks.",
      "Misalnya: nama juz di tepi kanan atas",
-     "Misalnya: tanda pembagian 30 juz"],
+     "Misalnya: tanda pembagian 30 juz", "Di mana tulisan nama juz itu?"],
     ["Penanda hizb",
      "Tanda hizb berbentuk hiasan kecil di tepi halaman, di samping ayat tempat satu hizb dimulai. Satu juz terbagi dua hizb.",
      "Misalnya: hiasan di tepi kiri halaman",
-     "Misalnya: membagi satu juz jadi dua"],
+     "Misalnya: membagi satu juz jadi dua", "Di mana tanda hizb itu?"],
     ["Tanda ruku' (huruf 'ain)",
      "Huruf ع kecil tertulis di tepi halaman, di samping ayat terakhir satu kelompok bahasan.",
      "Misalnya: 'ain di tepi kanan halaman",
-     "Misalnya: akhir satu kelompok ayat"]
+     "Misalnya: akhir satu kelompok ayat", "Di mana huruf 'ain itu?"]
   ];
   var aRows = el("aRows");
   unsur.forEach(function(u, i){
@@ -340,7 +340,7 @@
     box.appendChild(mk("div", "hint", u[1]));
     var g = mk("div", "grid");
     var w1 = mk("div"), w2 = mk("div");
-    field(w1, "aLetak" + i, "Letaknya / bentuk tandanya", u[2]);
+    field(w1, "aLetak" + i, u[4], u[2]);
     field(w2, "aFungsi" + i, "Untuk apa tanda ini", u[3]);
     g.appendChild(w1); g.appendChild(w2); box.appendChild(g);
     aRows.appendChild(box);
@@ -351,8 +351,8 @@
     wb.appendChild(mk("div", "unsur", "Tanda waqaf " + (w+1)));
     var wg = mk("div", "grid");
     var ww1 = mk("div"), ww2 = mk("div");
-    field(ww1, "wSimbol" + w, "Simbol tanda waqafnya", "Contoh: \u0645, \u062C, \u0644\u0627 (mim, ja', lam alif)");
-    field(ww2, "wArti" + w, "Arti tanda waqafnya", "Misalnya: waqaf lazim, harus berhenti");
+    field(ww1, "wSimbol" + w, "Simbol tanda waqaf", "Contoh: \u0645, \u062C, \u0644\u0627 (mim, ja', lam alif)");
+    field(ww2, "wArti" + w, "Arti tanda waqaf", "Misalnya: waqaf lazim, harus berhenti");
     wg.appendChild(ww1); wg.appendChild(ww2); wb.appendChild(wg);
     aW.appendChild(wb);
   }
@@ -374,7 +374,7 @@
       var op = mk("option", null, o === "" ? "Pilih" : o); op.value = o; sel.appendChild(op);
     });
     box.appendChild(sel);
-    field(box, "kCiri" + i, "Dua ciri pendukung", "Tulis 2 ciri, pisahkan dengan koma");
+    field(box, "kCiri" + i, "Dua ciri yang menunjukkan golongan itu", "Tulis 2 ciri, pisahkan dengan koma");
     bk.appendChild(box);
   });
 
@@ -409,13 +409,13 @@
     cell("cRuku" + c, "Ada tanda ruku' (huruf 'ain) di surah ini?");
     cell("cWaqaf" + c, "Satu contoh tanda waqaf di surah ini");
     var wsel = mk("div");
-    var slab = mk("label", null, "Makkiyah / Madaniyah"); slab.setAttribute("for", "cKlas" + c); wsel.appendChild(slab);
+    var slab = mk("label", null, "Makkiyah atau Madaniyah?"); slab.setAttribute("for", "cKlas" + c); wsel.appendChild(slab);
     var sel2 = mk("select"); sel2.id = "cKlas" + c; sel2.setAttribute("data-save","");
     ["", "Makkiyah", "Madaniyah"].forEach(function(o){
       var op = mk("option", null, o === "" ? "Pilih" : o); op.value = o; sel2.appendChild(op);
     });
     wsel.appendChild(sel2); g.appendChild(wsel);
-    cell("cSumber" + c, "Sumber yang dipakai", true);
+    cell("cSumber" + c, "Sumber yang kamu pakai", true);
     pb.appendChild(g);
     cp.appendChild(pb);
   }
@@ -495,7 +495,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261106-2014";
+  var BUILD = "20261106-2018";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
