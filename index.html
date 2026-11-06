@@ -259,7 +259,7 @@
 
   <section class="card" id="bagianC">
     <h2>Bagian C: Profil Tiga Surah <span class="time">±15 menit</span></h2>
-    <p class="desc">Analisislah tiga surah yang telah ditentukan memakai mushaf atau sumber digital yang terpercaya.</p>
+    <p class="desc">Analisislah tiga surah yang telah ditentukan memakai mushaf atau sumber digital yang terpercaya. Untuk juz dan hizb: tulis nomor juz dan hizb tempat surah itu berada. Kalau satu surah melewati beberapa juz, tulis rentangnya, dari juz berapa sampai juz berapa.</p>
     <div id="cProf"></div>
   </section>
 
@@ -404,7 +404,7 @@
     namaInp.readOnly = true;
     namaInp.removeAttribute("data-save");
     cell("cAyat" + c, "Jumlah ayat");
-    cell("cJuz" + c, "Letak juz / hizb");
+    cell("cJuz" + c, "Surah ini di juz & hizb berapa?");
     cell("cRuku" + c, "Penanda ruku' ditemukan?");
     cell("cWaqaf" + c, "Contoh tanda waqaf");
     var wsel = mk("div");
@@ -494,7 +494,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261106-1944";
+  var BUILD = "20261106-1957";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
