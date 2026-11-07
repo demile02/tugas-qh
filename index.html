@@ -163,6 +163,7 @@
   #btnNext{background:var(--clav); border-color:var(--clav); color:#fff; font-weight:600;}
   #btnBack{background:#fff; border:1px solid var(--bord); color:var(--ink); font-weight:500;}
   #btnKirim:disabled{opacity:.45;}
+  #btnSalin{background:#fff; border:1px solid var(--clav); color:var(--clav); font-weight:600;}
   #identitas{transition:border-color .25s, background .25s;}
   #identitas.kode-bad{border-color:#D96C57; background:#FDF3F1;}
   #identitas.kode-ok{border-color:#7FA36B; background:#F2F7EF;}
@@ -284,7 +285,12 @@
     <button type="button" id="btnBack">Kembali</button>
     <button type="button" id="btnNext">Selanjutnya</button>
     <button type="button" id="btnKirim">Kirim Jawaban</button>
+    <button type="button" id="btnSalin" hidden>Salin Jawaban</button>
   </div>
+</div>
+<div id="salinBox" hidden style="max-width:720px;margin:10px auto 90px;padding:0 16px;">
+  <p style="font-size:13px;margin:0 0 6px;">Teks jawabanmu ada di kotak ini. Tekan lama teksnya, pilih <b>Salin</b>, lalu tempel ke chat gurumu.</p>
+  <textarea id="salinTeks" readonly rows="10" style="width:100%;box-sizing:border-box;font-size:13px;padding:10px;border:1px solid #ccc;border-radius:10px;"></textarea>
 </div>
 <div id="toast" role="status"></div>
 
@@ -495,7 +501,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261107-1907";
+  var BUILD = "20261107-1935";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -594,6 +600,56 @@
   renderSeq();
   updateProgress();
   renderStep();
+
+  /* ---------- Pemicu mandiri tombol kirim (perbaikan Safari) ---------- */
+  /* Blok kirim berjalan sesudah blok ini, jadi jembatan fungsi tombol
+     dibaca malas di dalam pemicu, saat blok kirim sudah selesai jalan. */
+  var pemicuJalan = false;
+  window.__cekTombolKirim = function(){
+    var JB = window.__jembatanKirim || {};
+    if (typeof JB.segarTombol === "function") segarTombol = JB.segarTombol;
+    if (typeof JB.tandaCocok === "function") tandaCocok = JB.tandaCocok;
+    if (typeof JB.cekServer === "function") cekServer = JB.cekServer;
+    segarTombol();
+    var p = window.__pilihan;
+    var cocokField = false;
+    try {
+      var stP = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}");
+      cocokField = !!stP.fNama && !!p && p[0] === stP.fNama && p[1] === stP.fKelas && String(p[2]) === String(stP.fAbsen);
+    } catch(e){}
+    if (p && !cocokField){
+      try {
+        var stN = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}");
+        if (stN.fNama){
+          var namaEl = el("fNama");
+          if (namaEl && namaEl.value !== stN.fNama){
+            namaEl.value = stN.fNama;
+            namaEl.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+        }
+      } catch(e){}
+    }
+    if (tandaCocok()) cekServer();
+    segarSalin();
+  };
+  function pasangPemicu(){
+    if (pemicuJalan) return;
+    pemicuJalan = true;
+    var gAsli = window.__keLangkah;
+    if (typeof gAsli === "function" && !gAsli.__dibungkus){
+      var bungkus = function(){ var h = gAsli.apply(null, arguments); setTimeout(window.__cekTombolKirim, 120); return h; };
+      bungkus.__dibungkus = true;
+      window.__keLangkah = bungkus;
+    }
+    if (btnNext) btnNext.addEventListener("click", function(){ setTimeout(window.__cekTombolKirim, 200); });
+    if (btnBack) btnBack.addEventListener("click", function(){ setTimeout(window.__cekTombolKirim, 200); });
+    document.addEventListener("visibilitychange", function(){ if (!document.hidden) setTimeout(window.__cekTombolKirim, 300); });
+    window.addEventListener("focus", function(){ setTimeout(window.__cekTombolKirim, 300); });
+    setTimeout(window.__cekTombolKirim, 1500);
+    setTimeout(window.__cekTombolKirim, 4000);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", pasangPemicu);
+  else pasangPemicu();
 })();
 </script>
 <script>
@@ -715,6 +771,7 @@
 (function(){
   "use strict";
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxTtRdLjO6vLsz47qV6ny3PILs9jSU986YJ99jBQIt4aev-LkTTKsazzSF8uAQhP0VE2Q/exec";
+  window.__jembatanKirim = {};
   var BATAS = new Date("2026-11-09T10:00:00+07:00").getTime();
   function el(id){ return document.getElementById(id); }
   function v(id){ var n = el(id); return n ? (n.value || "").trim() : ""; }
@@ -753,19 +810,101 @@
     };
   }
   var btn = el("btnKirim");
+  var btnSalin = el("btnSalin");
+  var salinAktif = false;
   var KEY_TERKIRIM = "lkpd-bab6-v1-terkirim";
   function idn(){
     var r = window.__pilihan;
     return r ? (r[0] + "|" + r[1] + "|" + r[2]) : "";
   }
+  function idnField(){
+    var n = v("fNama");
+    return n ? (n + "|" + v("fKelas") + "|" + v("fAbsen")) : "";
+  }
+  function tandaCocok(){
+    var t = null;
+    try { t = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
+    if (!t || !t.idn) return false;
+    var f = idnField();
+    return !!f && t.idn.toUpperCase() === f.toUpperCase();
+  }
+  function segarSalin(){
+    if (btnSalin) btnSalin.hidden = !(salinAktif || tandaCocok());
+  }
+  function teksSalinan(){
+    var p = payload();
+    var L = [];
+    L.push("TUGAS 6 - LKPD BAB VI (Struktur Al-Qur'an)");
+    L.push("Nama: " + p.nama);
+    L.push("Kelas: " + p.kelas + " | No Absen: " + p.absen);
+    L.push("");
+    L.push("Halaman mushaf: " + p.halaman);
+    L.push("A1 Surah - letak: " + p.a1_letak);
+    L.push("A1 Surah - fungsi: " + p.a1_fungsi);
+    L.push("A2 Nomor ayat - letak: " + p.a2_letak);
+    L.push("A2 Nomor ayat - fungsi: " + p.a2_fungsi);
+    L.push("A3 Juz - letak: " + p.a3_letak);
+    L.push("A3 Juz - fungsi: " + p.a3_fungsi);
+    L.push("A4 Hizb - letak: " + p.a4_letak);
+    L.push("A4 Hizb - fungsi: " + p.a4_fungsi);
+    L.push("A5 Ruku - letak: " + p.a5_letak);
+    L.push("A5 Ruku - fungsi: " + p.a5_fungsi);
+    L.push("A Waqaf: " + p.waqaf);
+    L.push("B1 Urutan: " + p.b1_urutan);
+    L.push("B1 Penjelasan: " + p.b1_jelas);
+    L.push("B2.1: " + p.b21);
+    L.push("B2.2: " + p.b22);
+    L.push("B3 Al-Ikhlas: " + p.b3_ikhlas);
+    L.push("B3 Al-Baqarah: " + p.b3_baqarah);
+    L.push("B3 Al-Kahfi: " + p.b3_kahfi);
+    L.push("C Profil 1: " + p.c1);
+    L.push("C Profil 2: " + p.c2);
+    L.push("C Profil 3: " + p.c3);
+    L.push("D1 Dua hal dipahami: " + p.d1);
+    L.push("D2 Perlu diperiksa: " + p.d2);
+    L.push("D3 Tindakan: " + p.d3);
+    return L.join("\n");
+  }
+  function salinJawaban(){
+    var teks = teksSalinan();
+    function tampilKotak(){
+      var box = el("salinBox"), ta = el("salinTeks");
+      if (box && ta){
+        ta.value = teks; box.hidden = false;
+        box.scrollIntoView({ block: "center", behavior: "smooth" });
+        setTimeout(function(){ try { ta.focus(); ta.setSelectionRange(0, teks.length); } catch(e){} }, 350);
+      }
+      toast("Teks jawaban ditampilkan di kotak bawah tombol. Tekan lama lalu Salin.");
+    }
+    function caraLama(){
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = teks;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0.01";
+        document.body.appendChild(ta);
+        ta.focus(); ta.select(); ta.setSelectionRange(0, teks.length);
+        var ok = false;
+        try { ok = document.execCommand("copy"); } catch(e){}
+        document.body.removeChild(ta);
+        if (ok) toast("Jawaban tersalin. Tempel (paste) ke chat gurumu di WhatsApp.");
+        else tampilKotak();
+      } catch(e){ tampilKotak(); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(teks).then(function(){
+        toast("Jawaban tersalin. Tempel (paste) ke chat gurumu di WhatsApp.");
+      }, function(){ caraLama(); });
+    } else caraLama();
+  }
+  if (btnSalin) btnSalin.addEventListener("click", salinJawaban);
   function segarTombol(){
+    segarSalin();
     if (Date.now() > ((window.__batasAktif && window.__batasAktif()) || BATAS)){
       btn.disabled = true; btn.textContent = "Kirim Ditutup";
       return;
     }
-    var t = null;
-    try { t = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
-    if (t && idn() && t.idn === idn()){
+    if (tandaCocok()){
       btn.disabled = true; btn.textContent = "Sudah Terkirim";
     } else if (btn.textContent === "Sudah Terkirim"){
       btn.disabled = false; btn.textContent = "Kirim Jawaban";
@@ -833,7 +972,7 @@
   }
   var idnDicek = "";
   function cekServer(){
-    var idnNow = idn();
+    var idnNow = idn() || idnField();
     if (!idnNow) return;
     // Tanda terkirim lokal selalu diverifikasi ke server: bila server tidak
     // mencatatnya, tanda dibersihkan dan tombol kirim dibuka lagi, tanpa
@@ -841,7 +980,7 @@
     // pemulihan hanya bila progres lokal kosong.
     var tLokal = null;
     try { tLokal = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
-    var verifikasi = !!(tLokal && tLokal.idn === idnNow);
+    var verifikasi = !!(tLokal && tLokal.idn && tLokal.idn.toUpperCase() === idnNow.toUpperCase());
     var stLokal = {};
     try { stLokal = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}"); } catch(e){}
     var terisiLokal = 0;
@@ -851,10 +990,10 @@
       if (typeof stLokal[k] === "string" && stLokal[k].trim()) terisiLokal++;
     });
     if (!verifikasi && terisiLokal >= 3) return;
-    var kunciCek = idnNow + "|" + (v("fKode") || "");
+    var kunciCek = idnNow.toUpperCase() + "|" + (v("fKode") || "");
     if (kunciCek === idnDicek) return;
     idnDicek = kunciCek;
-    var r = window.__pilihan;
+    var r = idnNow.split("|");
     var cb = "cekCb" + Date.now();
     var sc = document.createElement("script");
     function bersih(){
@@ -871,6 +1010,7 @@
       } else if (verifikasi){
         try { localStorage.removeItem(KEY_TERKIRIM); } catch(e){}
         idnDicek = "";
+        salinAktif = true;
         segarTombol();
         toast("Kiriman sebelumnya tidak tercatat di tabel guru. Jawabanmu tetap tersimpan, ketuk Kirim Jawaban untuk mengirim ulang.");
       }
@@ -943,9 +1083,13 @@
       setTimeout(function(){ idnDicek = ""; cekServer(); }, 10000);
     }).catch(function(){
       btn.disabled = false; btn.textContent = "Kirim Jawaban";
-      toast("Gagal mengirim, jaringan bermasalah. Periksa koneksimu lalu coba lagi.");
+      salinAktif = true; segarSalin();
+      toast("Gagal mengirim, jaringan bermasalah. Periksa koneksimu lalu coba lagi, atau pakai tombol Salin Jawaban.");
     });
   });
+  window.__jembatanKirim.segarTombol = segarTombol;
+  window.__jembatanKirim.tandaCocok = tandaCocok;
+  window.__jembatanKirim.cekServer = cekServer;
 })();
 </script>
 <script>
