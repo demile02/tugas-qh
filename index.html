@@ -495,7 +495,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261107-1846";
+  var BUILD = "20261107-1907";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -835,13 +835,13 @@
   function cekServer(){
     var idnNow = idn();
     if (!idnNow) return;
-    // Server hanya dipanggil bila penyimpanan lokal hilang atau kosong:
-    // lewati bila tanda terkirim lokal untuk nama ini masih ada, atau bila
-    // progres jawaban lokal sudah berarti. Sesudah pemulihan, tanda lokal
-    // tertulis lagi dan panggilan berhenti.
+    // Tanda terkirim lokal selalu diverifikasi ke server: bila server tidak
+    // mencatatnya, tanda dibersihkan dan tombol kirim dibuka lagi, tanpa
+    // menyentuh isian jawaban. Tanpa tanda lokal, server dipanggil untuk
+    // pemulihan hanya bila progres lokal kosong.
     var tLokal = null;
     try { tLokal = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
-    if (tLokal && tLokal.idn === idnNow) return;
+    var verifikasi = !!(tLokal && tLokal.idn === idnNow);
     var stLokal = {};
     try { stLokal = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}"); } catch(e){}
     var terisiLokal = 0;
@@ -850,7 +850,7 @@
       if (k === "_seq"){ if (stLokal[k] && stLokal[k].length) terisiLokal++; return; }
       if (typeof stLokal[k] === "string" && stLokal[k].trim()) terisiLokal++;
     });
-    if (terisiLokal >= 3) return;
+    if (!verifikasi && terisiLokal >= 3) return;
     var kunciCek = idnNow + "|" + (v("fKode") || "");
     if (kunciCek === idnDicek) return;
     idnDicek = kunciCek;
@@ -868,6 +868,11 @@
         segarTombol();
         if (res.jawaban) pulihkan(res.jawaban);
         else toast("Nama ini sudah tercatat mengirim jawaban di tabel guru.");
+      } else if (verifikasi){
+        try { localStorage.removeItem(KEY_TERKIRIM); } catch(e){}
+        idnDicek = "";
+        segarTombol();
+        toast("Kiriman sebelumnya tidak tercatat di tabel guru. Jawabanmu tetap tersimpan, ketuk Kirim Jawaban untuk mengirim ulang.");
       }
     };
     sc.onerror = function(){ bersih(); idnDicek = ""; };
@@ -935,6 +940,7 @@
       try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idn(), at: Date.now() })); } catch(e){}
       btn.textContent = "Sudah Terkirim";
       toast("Jawaban terkirim. Sebutkan namamu ke guru untuk dicek di tabelnya.");
+      setTimeout(function(){ idnDicek = ""; cekServer(); }, 10000);
     }).catch(function(){
       btn.disabled = false; btn.textContent = "Kirim Jawaban";
       toast("Gagal mengirim, jaringan bermasalah. Periksa koneksimu lalu coba lagi.");
