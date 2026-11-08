@@ -501,7 +501,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261107-1935";
+  var BUILD = "20261108-0816";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -629,8 +629,8 @@
         }
       } catch(e){}
     }
-    if (tandaCocok()) cekServer();
-    segarSalin();
+    cekServer();
+    if (typeof JB.segarSalin === "function") JB.segarSalin();
   };
   function pasangPemicu(){
     if (pemicuJalan) return;
@@ -813,6 +813,12 @@
   var btnSalin = el("btnSalin");
   var salinAktif = false;
   var KEY_TERKIRIM = "lkpd-bab6-v1-terkirim";
+  /* Keadaan tombol ditentukan TABEL SERVER, bukan tanda di HP:
+     serverTercatat hanya terisi sesudah server membalas bahwa nama ini
+     memang ada di spreadsheet. Tanda lokal tidak pernah mengunci tombol. */
+  var serverTercatat = "";
+  var optimisIdn = "";
+  var sedangKirim = false;
   function idn(){
     var r = window.__pilihan;
     return r ? (r[0] + "|" + r[1] + "|" + r[2]) : "";
@@ -904,11 +910,15 @@
       btn.disabled = true; btn.textContent = "Kirim Ditutup";
       return;
     }
-    if (tandaCocok()){
+    if (sedangKirim) return;
+    var f = idnField().toUpperCase();
+    /* Terkunci hanya bila server memastikan nama ini tercatat di tabelnya,
+       atau kiriman sesi ini sendiri sedang menunggu konfirmasi server. */
+    if (f && (serverTercatat === f || optimisIdn === f)){
       btn.disabled = true; btn.textContent = "Sudah Terkirim";
-    } else if (btn.textContent === "Sudah Terkirim"){
-      btn.disabled = false; btn.textContent = "Kirim Jawaban";
+      return;
     }
+    btn.disabled = false; btn.textContent = "Kirim Jawaban";
   }
   ["fNama", "fKelas", "fAbsen"].forEach(function(id){
     var n = el(id);
@@ -971,16 +981,17 @@
     if (n > 0) toast("Jawaban terkirimmu dipulihkan dari tabel guru: " + n + " isian.");
   }
   var idnDicek = "";
+  var cekPercobaan = {};
   function cekServer(){
     var idnNow = idn() || idnField();
     if (!idnNow) return;
-    // Tanda terkirim lokal selalu diverifikasi ke server: bila server tidak
-    // mencatatnya, tanda dibersihkan dan tombol kirim dibuka lagi, tanpa
-    // menyentuh isian jawaban. Tanpa tanda lokal, server dipanggil untuk
-    // pemulihan hanya bila progres lokal kosong.
+    // Status tombol dibaca dari TABEL SERVER untuk semua kelas: bila ada
+    // tanda lokal atau kiriman sesi ini, server selalu ditanya. Bila server
+    // tidak mencatat nama ini, tombol kirim wajib menyala. Tanpa tanda,
+    // server dipanggil untuk pemulihan hanya bila progres lokal kosong.
     var tLokal = null;
     try { tLokal = JSON.parse(localStorage.getItem(KEY_TERKIRIM) || "null"); } catch(e){}
-    var verifikasi = !!(tLokal && tLokal.idn && tLokal.idn.toUpperCase() === idnNow.toUpperCase());
+    var verifikasi = !!((tLokal && tLokal.idn && tLokal.idn.toUpperCase() === idnNow.toUpperCase()) || optimisIdn === idnNow.toUpperCase());
     var stLokal = {};
     try { stLokal = JSON.parse(localStorage.getItem("lkpd-bab6-v1") || "{}"); } catch(e){}
     var terisiLokal = 0;
@@ -996,33 +1007,52 @@
     var r = idnNow.split("|");
     var cb = "cekCb" + Date.now();
     var sc = document.createElement("script");
+    var selesai = false;
     function bersih(){
       try { delete window[cb]; } catch(e){ window[cb] = undefined; }
       if (sc.parentNode) sc.parentNode.removeChild(sc);
     }
-    window[cb] = function(res){
+    function gagal(){
+      if (selesai) return;
+      selesai = true;
       bersih();
+      // Kegagalan/timeout TIDAK boleh mengunci cek selamanya: kunci dedup
+      // dilepas dan dicoba lagi (maks 2x), supaya jawaban server yang
+      // lambat tetap sampai dan keadaan tombol mengikuti tabel server.
+      idnDicek = "";
+      cekPercobaan[kunciCek] = (cekPercobaan[kunciCek] || 0) + 1;
+      if (cekPercobaan[kunciCek] <= 2) setTimeout(cekServer, 3000);
+    }
+    window[cb] = function(res){
+      if (selesai) return;
+      selesai = true;
+      bersih();
+      delete cekPercobaan[kunciCek];
       if (res && res.sudah){
+        serverTercatat = idnNow.toUpperCase();
+        optimisIdn = "";
         try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idnNow, at: Date.now() })); } catch(e){}
         segarTombol();
         if (res.jawaban) pulihkan(res.jawaban);
         else toast("Nama ini sudah tercatat mengirim jawaban di tabel guru.");
-      } else if (verifikasi){
-        try { localStorage.removeItem(KEY_TERKIRIM); } catch(e){}
-        idnDicek = "";
-        salinAktif = true;
-        segarTombol();
-        toast("Kiriman sebelumnya tidak tercatat di tabel guru. Jawabanmu tetap tersimpan, ketuk Kirim Jawaban untuk mengirim ulang.");
+      } else {
+        if (serverTercatat === idnNow.toUpperCase()) serverTercatat = "";
+        if (verifikasi){
+          try { localStorage.removeItem(KEY_TERKIRIM); } catch(e){}
+          optimisIdn = "";
+          idnDicek = "";
+          salinAktif = true;
+          segarTombol();
+          toast("Kiriman sebelumnya tidak tercatat di tabel guru. Jawabanmu tetap tersimpan, ketuk Kirim Jawaban untuk mengirim ulang.");
+        }
       }
     };
-    sc.onerror = function(){ bersih(); idnDicek = ""; };
-    var kodeEl = el("fKode");
-    if (kodeEl) kodeEl.addEventListener("input", function(){ setTimeout(cekServer, 600); });
-    setTimeout(function(){ if (window[cb]) bersih(); }, 9000);
+    sc.onerror = gagal;
+    setTimeout(function(){ if (!selesai) gagal(); }, 25000);
     sc.src = ENDPOINT + "?cek=1&nama=" + encodeURIComponent(r[0]) + "&kelas=" + encodeURIComponent(r[1]) + "&absen=" + encodeURIComponent(r[2]) + "&kode=" + encodeURIComponent(v("fKode") || "") + "&callback=" + cb;
     document.body.appendChild(sc);
   }
-  ["fNama", "fKelas", "fAbsen"].forEach(function(id){
+  ["fNama", "fKelas", "fAbsen", "fKode"].forEach(function(id){
     var n = el(id);
     if (n) n.addEventListener("input", function(){ setTimeout(cekServer, 400); });
   });
@@ -1072,16 +1102,24 @@
       return;
     }
     btn.disabled = true; btn.textContent = "Mengirim…";
+    sedangKirim = true;
     fetch(ENDPOINT, {
       method: "POST", mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(p)
     }).then(function(){
+      sedangKirim = false;
+      optimisIdn = idn().toUpperCase();
       try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idn(), at: Date.now() })); } catch(e){}
-      btn.textContent = "Sudah Terkirim";
+      btn.disabled = true; btn.textContent = "Sudah Terkirim";
       toast("Jawaban terkirim. Sebutkan namamu ke guru untuk dicek di tabelnya.");
-      setTimeout(function(){ idnDicek = ""; cekServer(); }, 10000);
+      // Status akhir tetap ditentukan balasan server: tercatat -> terkunci,
+      // tidak tercatat -> tanda dibersihkan dan tombol menyala lagi.
+      setTimeout(function(){ idnDicek = ""; cekServer(); }, 3000);
+      setTimeout(function(){ if (serverTercatat !== idn().toUpperCase()){ idnDicek = ""; cekServer(); } }, 20000);
     }).catch(function(){
+      sedangKirim = false;
+      optimisIdn = "";
       btn.disabled = false; btn.textContent = "Kirim Jawaban";
       salinAktif = true; segarSalin();
       toast("Gagal mengirim, jaringan bermasalah. Periksa koneksimu lalu coba lagi, atau pakai tombol Salin Jawaban.");
@@ -1090,6 +1128,7 @@
   window.__jembatanKirim.segarTombol = segarTombol;
   window.__jembatanKirim.tandaCocok = tandaCocok;
   window.__jembatanKirim.cekServer = cekServer;
+  window.__jembatanKirim.segarSalin = segarSalin;
 })();
 </script>
 <script>
