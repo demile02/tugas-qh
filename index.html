@@ -501,7 +501,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261108-0816";
+  var BUILD = "20261108-0845";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -912,10 +912,15 @@
     }
     if (sedangKirim) return;
     var f = idnField().toUpperCase();
-    /* Terkunci hanya bila server memastikan nama ini tercatat di tabelnya,
-       atau kiriman sesi ini sendiri sedang menunggu konfirmasi server. */
-    if (f && (serverTercatat === f || optimisIdn === f)){
+    /* Terkunci "Sudah Terkirim" hanya bila server memastikan nama ini
+       tercatat di tabelnya. Kiriman sesi ini yang belum terkonfirmasi
+       tampil sebagai pemeriksaan, bukan sebagai klaim terkirim. */
+    if (f && serverTercatat === f){
       btn.disabled = true; btn.textContent = "Sudah Terkirim";
+      return;
+    }
+    if (f && optimisIdn === f){
+      btn.disabled = true; btn.textContent = "Memeriksa ke Server…";
       return;
     }
     btn.disabled = false; btn.textContent = "Kirim Jawaban";
@@ -1021,7 +1026,17 @@
       // lambat tetap sampai dan keadaan tombol mengikuti tabel server.
       idnDicek = "";
       cekPercobaan[kunciCek] = (cekPercobaan[kunciCek] || 0) + 1;
-      if (cekPercobaan[kunciCek] <= 2) setTimeout(cekServer, 3000);
+      if (cekPercobaan[kunciCek] <= 2){ setTimeout(cekServer, 3000); return; }
+      // Server tidak menjawab sesudah semua percobaan: keadaan optimis
+      // dibatalkan dan tombol dibuka lagi, jangan menggantung sebagai
+      // "terkirim" yang tidak terbukti.
+      if (optimisIdn === idnNow.toUpperCase()){
+        optimisIdn = "";
+        try { localStorage.removeItem(KEY_TERKIRIM); } catch(e){}
+        salinAktif = true;
+        segarTombol();
+        toast("Server tidak menjawab, kirimanmu belum bisa dipastikan tercatat. Ketuk Kirim Jawaban untuk mencoba lagi, atau pakai tombol Salin Jawaban.");
+      }
     }
     window[cb] = function(res){
       if (selesai) return;
@@ -1029,11 +1044,13 @@
       bersih();
       delete cekPercobaan[kunciCek];
       if (res && res.sudah){
+        var baruSajaKirim = (optimisIdn === idnNow.toUpperCase());
         serverTercatat = idnNow.toUpperCase();
         optimisIdn = "";
         try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idnNow, at: Date.now() })); } catch(e){}
         segarTombol();
         if (res.jawaban) pulihkan(res.jawaban);
+        else if (baruSajaKirim) toast("Jawaban terkirim dan sudah tercatat di tabel guru.");
         else toast("Nama ini sudah tercatat mengirim jawaban di tabel guru.");
       } else {
         if (serverTercatat === idnNow.toUpperCase()) serverTercatat = "";
@@ -1043,7 +1060,7 @@
           idnDicek = "";
           salinAktif = true;
           segarTombol();
-          toast("Kiriman sebelumnya tidak tercatat di tabel guru. Jawabanmu tetap tersimpan, ketuk Kirim Jawaban untuk mengirim ulang.");
+          toast("Kirimanmu tidak tercatat di tabel guru. Jawabanmu tetap tersimpan, ketuk Kirim Jawaban untuk mengirim ulang.");
         }
       }
     };
@@ -1110,13 +1127,12 @@
     }).then(function(){
       sedangKirim = false;
       optimisIdn = idn().toUpperCase();
-      try { localStorage.setItem(KEY_TERKIRIM, JSON.stringify({ idn: idn(), at: Date.now() })); } catch(e){}
-      btn.disabled = true; btn.textContent = "Sudah Terkirim";
-      toast("Jawaban terkirim. Sebutkan namamu ke guru untuk dicek di tabelnya.");
-      // Status akhir tetap ditentukan balasan server: tercatat -> terkunci,
-      // tidak tercatat -> tanda dibersihkan dan tombol menyala lagi.
-      setTimeout(function(){ idnDicek = ""; cekServer(); }, 3000);
-      setTimeout(function(){ if (serverTercatat !== idn().toUpperCase()){ idnDicek = ""; cekServer(); } }, 20000);
+      // Belum boleh mengklaim terkirim: kiriman baru dianggap terkirim
+      // sesudah server membalas bahwa nama ini tercatat di tabelnya.
+      segarTombol();
+      toast("Kiriman dikirim, sedang diperiksa ke tabel guru…");
+      setTimeout(function(){ idnDicek = ""; cekServer(); }, 2000);
+      setTimeout(function(){ if (serverTercatat !== idn().toUpperCase() && optimisIdn === idn().toUpperCase()){ idnDicek = ""; cekServer(); } }, 15000);
     }).catch(function(){
       sedangKirim = false;
       optimisIdn = "";
