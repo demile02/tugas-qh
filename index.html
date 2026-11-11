@@ -501,7 +501,7 @@
   /* WAJIB: ganti nilai BUILD pada SETIAP push. Halaman siswa yang masih
      terbuka membandingkan BUILD dengan versi terbaru di server; bila beda,
      halaman memuat ulang sendiri dan progres dipulihkan dari localStorage. */
-  var BUILD = "20261108-0845";
+  var BUILD = "20261111-0857";
   function cekVersi(){
     if (document.visibilityState !== "visible") return;
     fetch(location.pathname + "?cek=" + Date.now(), { cache: "no-store" })
@@ -834,8 +834,16 @@
     var f = idnField();
     return !!f && t.idn.toUpperCase() === f.toUpperCase();
   }
+  /* Guru membuka jalur Salin Jawaban untuk seluruh kelas X-E (11 Nov 2026):
+     siswa X-E boleh menyalin jawabannya tanpa harus gagal kirim dulu. */
+  function salinBebasKelas(){
+    var k = "";
+    try { k = v("fKelas") || ""; } catch(e){}
+    if (!k && window.__pilihan) k = window.__pilihan[1] || "";
+    return String(k).toUpperCase() === "X-E";
+  }
   function segarSalin(){
-    if (btnSalin) btnSalin.hidden = !(salinAktif || tandaCocok());
+    if (btnSalin) btnSalin.hidden = !(salinAktif || tandaCocok() || salinBebasKelas());
   }
   function teksSalinan(){
     var p = payload();
